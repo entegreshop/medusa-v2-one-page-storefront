@@ -610,7 +610,14 @@ export default function ProductLandingPage({ product }: ProductLandingPageProps)
       const tryRegion = regionsRes.regions?.find(
         (r: any) => r.currency_code === "try" || r.name?.toLowerCase() === "turkey"
       )
-      const regionId = tryRegion?.id
+      
+      if (!tryRegion) {
+        setErrorMessage("Sistemde Türkiye (TRY) bölgesi bulunamadı. Lütfen Medusa Admin panelinden Region (Bölge) oluşturun ve Sales Channel'a ekleyin.")
+        setIsLoading(false)
+        return
+      }
+      
+      const regionId = tryRegion.id
 
       const cartResponse = await medusa.store.cart.create({
         region_id: regionId,
