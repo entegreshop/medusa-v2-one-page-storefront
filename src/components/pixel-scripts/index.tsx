@@ -5,9 +5,14 @@ export default async function PixelScripts() {
   try {
     let backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9001"
     if (backendUrl.includes("localhost")) {
-      backendUrl = backendUrl.replace("localhost", "127.0.0.1")
+      // In production Docker, localhost doesn't work. Use the known backend IP.
+      if (process.env.NODE_ENV === "production") {
+        backendUrl = "http://204.168.136.196:9001";
+      } else {
+        backendUrl = backendUrl.replace("localhost", "127.0.0.1");
+      }
     }
-    const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || ""
+    const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "pk_7587df1c043fb92eebc89c01e37c6e50ef92da4fdc68ab9a49a731594c3d7b0e"
     const res = await fetch(`${backendUrl}/store/pixel-settings`, {
       cache: "no-store",
       headers: {
