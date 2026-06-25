@@ -108,21 +108,6 @@ export default function ProductLandingPage({ product }: ProductLandingPageProps)
 
   const handleSelectPackage = (pkgId: number) => {
     setSelectedPackage(pkgId)
-    
-    // Trigger ViewContent only once per package ID selection
-    if (!trackedViewContentRef.current[pkgId]) {
-      trackedViewContentRef.current[pkgId] = true
-      trackViewContent({
-        id: product.id,
-        title: product.title,
-        price: getPriceForPackage(pkgId),
-        currency: displayCurrency
-      })
-    }
-
-    // Reset checkout tracking on package change
-    trackedInitiateCheckoutRef.current = false
-
     setTimeout(() => {
       optionsRef.current?.scrollIntoView({ behavior: "smooth" })
     }, 100)
@@ -134,40 +119,8 @@ export default function ProductLandingPage({ product }: ProductLandingPageProps)
       const newItems = [...prev]
       newItems[index] = { ...newItems[index], color }
 
-      // Trigger AddToCart when both color and size are selected for this item
-      if (newItems[index].size) {
-        const itemKey = `${index}-${color}-${newItems[index].size}`
-        if (!trackedAddToCartRef.current[itemKey]) {
-          trackedAddToCartRef.current[itemKey] = true
-          trackAddToCart({
-            id: product.id + "-" + color + "-" + newItems[index].size,
-            title: `${product.title} (${color} / ${newItems[index].size})`,
-            price: currentPrice / (selectedPackage || 1),
-            currency: displayCurrency,
-            quantity: 1
-          })
-        }
-      }
-
-      // Check if all items are fully configured
       const allSelected = newItems.length > 0 && newItems.every(item => item.color && item.size)
-      if (allSelected && !trackedInitiateCheckoutRef.current) {
-        trackedInitiateCheckoutRef.current = true
-        // Trigger InitiateCheckout
-        trackInitiateCheckout({
-          id: "temp_cart",
-          total: currentPrice,
-          currency: displayCurrency,
-          items: newItems.map((item, idx) => ({
-            id: product.id + "-" + item.color + "-" + item.size,
-            title: `${product.title} (${item.color} / ${item.size})`,
-            quantity: 1,
-            unit_price: (currentPrice / (selectedPackage || 1)) * 100
-          }))
-        })
-      }
 
-      // Progressive scroll on item completion
       if (wasIncomplete && newItems[index].color && newItems[index].size) {
         if (allSelected) {
           setTimeout(() => {
@@ -193,40 +146,8 @@ export default function ProductLandingPage({ product }: ProductLandingPageProps)
       const newItems = [...prev]
       newItems[index] = { ...newItems[index], size }
 
-      // Trigger AddToCart when both color and size are selected for this item
-      if (newItems[index].color) {
-        const itemKey = `${index}-${newItems[index].color}-${size}`
-        if (!trackedAddToCartRef.current[itemKey]) {
-          trackedAddToCartRef.current[itemKey] = true
-          trackAddToCart({
-            id: product.id + "-" + newItems[index].color + "-" + size,
-            title: `${product.title} (${newItems[index].color} / ${size})`,
-            price: currentPrice / (selectedPackage || 1),
-            currency: displayCurrency,
-            quantity: 1
-          })
-        }
-      }
-
-      // Check if all items are fully configured
       const allSelected = newItems.length > 0 && newItems.every(item => item.color && item.size)
-      if (allSelected && !trackedInitiateCheckoutRef.current) {
-        trackedInitiateCheckoutRef.current = true
-        // Trigger InitiateCheckout
-        trackInitiateCheckout({
-          id: "temp_cart",
-          total: currentPrice,
-          currency: displayCurrency,
-          items: newItems.map((item, idx) => ({
-            id: product.id + "-" + item.color + "-" + item.size,
-            title: `${product.title} (${item.color} / ${item.size})`,
-            quantity: 1,
-            unit_price: (currentPrice / (selectedPackage || 1)) * 100
-          }))
-        })
-      }
 
-      // Progressive scroll on item completion
       if (wasIncomplete && newItems[index].color && newItems[index].size) {
         if (allSelected) {
           setTimeout(() => {
@@ -644,6 +565,31 @@ export default function ProductLandingPage({ product }: ProductLandingPageProps)
     if (!formData.paymentMethod) {
       setErrorMessage("Lütfen ödeme türünü seçin.")
       return
+    }
+
+    // Fire tracking events once exactly when form is successfully submitted
+    if (!trackedInitiateCheckoutRef.current) {
+      trackedInitiateCheckoutRef.current = true
+      selectedItems.forEach(item => {
+        trackAddToCart({
+          id: product.id + "-" + item.color + "-" + item.size,
+          title: `${product.title} (${item.color} / ${item.size})`,
+          price: currentPrice / (selectedPackage || 1),
+          currency: displayCurrency,
+          quantity: 1
+        })
+      })
+      trackInitiateCheckout({
+        id: "temp_cart",
+        total: currentPrice,
+        currency: displayCurrency,
+        items: selectedItems.map((item) => ({
+          id: product.id + "-" + item.color + "-" + item.size,
+          title: `${product.title} (${item.color} / ${item.size})`,
+          quantity: 1,
+          unit_price: (currentPrice / (selectedPackage || 1)) * 100
+        }))
+      })
     }
 
     const variantQuantities: Record<string, number> = {}
