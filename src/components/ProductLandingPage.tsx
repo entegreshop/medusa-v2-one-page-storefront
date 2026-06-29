@@ -692,6 +692,21 @@ export default function ProductLandingPage({ product }: ProductLandingPageProps)
       
       if (completionRes.order) {
         setOrderId(completionRes.order.id)
+        
+        // Save the payment method to the order metadata
+        try {
+          await fetch(`${backendUrl}/store/update-order-payment`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              order_id: completionRes.order.id,
+              payment_method: formData.paymentMethod === "cash" ? "Kapıda Nakit" : "Kapıda Kredi Kartı"
+            })
+          })
+        } catch (e) {
+          console.error("Failed to save payment method to order metadata", e)
+        }
+
         setIsSuccess(true)
 
         // Trigger Purchase
