@@ -1,281 +1,170 @@
-export const trackViewContent = (product: { id: string; title: string; price: number; currency: string }) => {
-  if (typeof window === "undefined") return;
+import { sendMetaCAPIEvent } from "../app/actions/capi"
 
-  // 1. Meta Pixel
-  if ((window as any).fbq) {
-    (window as any).fbq("track", "ViewContent", {
-      content_ids: [product.id],
-      content_name: product.title,
-      content_type: "product",
-      value: product.price,
-      currency: product.currency
-    });
+export type TrackingEventData = {
+  event_id?: string
+  content_ids?: string[]
+  content_name?: string
+  content_category?: string
+  value?: number
+  currency?: string
+  quantity?: number
+  search_string?: string
+}
+
+declare global {
+  interface Window {
+    fbq: any;
+    ttq: any;
+    dataLayer: any[];
+    gtag: any;
   }
+}
 
-  // 2. TikTok Pixel
-  if ((window as any).ttq) {
-    (window as any).ttq.track("ViewContent", {
-      contents: [{
-        content_id: product.id,
-        content_name: product.title,
-        content_type: "product",
-        quantity: 1,
-        price: product.price
-      }],
-      value: product.price,
-      currency: product.currency
-    });
-  }
-
-  // 3. Google Analytics (GA4)
-  if ((window as any).gtag) {
-    (window as any).gtag("event", "view_item", {
-      currency: product.currency,
-      value: product.price,
-      items: [{
-        item_id: product.id,
-        item_name: product.title,
-        price: product.price,
-        quantity: 1
-      }]
-    });
-  }
-};
-
-export const trackAddToCart = (product: { id: string; title: string; price: number; currency: string; quantity: number }) => {
-  if (typeof window === "undefined") return;
-
-  // 1. Meta Pixel
-  if ((window as any).fbq) {
-    (window as any).fbq("track", "AddToCart", {
-      content_ids: [product.id],
-      content_name: product.title,
-      content_type: "product",
-      value: product.price * product.quantity,
-      currency: product.currency
-    });
-  }
-
-  // 2. TikTok Pixel
-  if ((window as any).ttq) {
-    (window as any).ttq.track("AddToCart", {
-      contents: [{
-        content_id: product.id,
-        content_name: product.title,
-        content_type: "product",
-        quantity: product.quantity,
-        price: product.price
-      }],
-      value: product.price * product.quantity,
-      currency: product.currency
-    });
-  }
-
-  // 3. Google Analytics (GA4)
-  if ((window as any).gtag) {
-    (window as any).gtag("event", "add_to_cart", {
-      currency: product.currency,
-      value: product.price * product.quantity,
-      items: [{
-        item_id: product.id,
-        item_name: product.title,
-        price: product.price,
-        quantity: product.quantity
-      }]
-    });
-  }
-};
-
-export const trackInitiateCheckout = (cart: { id: string; total: number; currency: string; items: any[] }) => {
-  if (typeof window === "undefined") return;
-
-  const contentIds = cart.items.map(item => item.variant?.product_id || item.product_id || item.id);
-
-  // 1. Meta Pixel
-  if ((window as any).fbq) {
-    (window as any).fbq("track", "InitiateCheckout", {
-      content_ids: contentIds,
-      content_type: "product",
-      value: cart.total,
-      currency: cart.currency
-    });
-  }
-
-  // 2. TikTok Pixel
-  if ((window as any).ttq) {
-    (window as any).ttq.track("InitiateCheckout", {
-      contents: cart.items.map(item => ({
-        content_id: item.variant?.product_id || item.product_id || item.id,
-        content_name: item.title,
-        content_type: "product",
-        quantity: item.quantity,
-        price: (item.unit_price || 0) / 100
-      })),
-      value: cart.total,
-      currency: cart.currency
-    });
-  }
-
-  // 3. Google Analytics (GA4)
-  if ((window as any).gtag) {
-    (window as any).gtag("event", "begin_checkout", {
-      currency: cart.currency,
-      value: cart.total,
-      items: cart.items.map(item => ({
-        item_id: item.variant?.product_id || item.product_id || item.id,
-        item_name: item.title,
-        price: (item.unit_price || 0) / 100,
-        quantity: item.quantity
+/**
+ * Dinamik olarak Meta, TikTok ve DataLayer izleyicilerine event atar.
+ */
+export const trackEvent = (
+  eventCategory: "view_item" | "add_to_cart" | "begin_checkout" | "add_payment_info" | "purchase" | "search" | "view_category" | "view_cart",
+  data: TrackingEventData
+) => {
+  // 1. DataLayer (GTM & GA4 uyumlu yapı)
+  if (typeof window !== "undefined" && window.dataLayer) {
+    window.dataLayer.push({ ecommerce: null }); // clears the previous ecommerce object
+    
+    let ecommercePayload: any = {
+      currency: data.currency || "TRY",
+      value: data.value || 0,
+      items: (data.content_ids || []).map((id, index) => ({
+        item_id: id,
+        item_name: data.content_name || "",
+        item_category: data.content_category || "",
+        price: data.value || 0,
+        quantity: data.quantity || 1
       }))
-    });
-  }
-};
-
-export const trackPurchase = (order: { id: string; total: number; currency: string; items: any[] }) => {
-  if (typeof window === "undefined") return;
-
-  const contentIds = order.items.map(item => item.variant?.product_id || item.product_id || item.id);
-
-  // 1. Meta Pixel
-  if ((window as any).fbq) {
-    (window as any).fbq("track", "Purchase", {
-      content_ids: contentIds,
-      content_type: "product",
-      value: order.total,
-      currency: order.currency
-    });
+    };
+    
+    // Eğer bir arama sorgusu varsa parametreyi ekle
+    if (eventCategory === "search" && data.search_string) {
+      window.dataLayer.push({
+        event: "search",
+        search_term: data.search_string
+      });
+    } else {
+      window.dataLayer.push({
+        event: eventCategory,
+        ecommerce: ecommercePayload
+      });
+    }
   }
 
-  // 2. TikTok Pixel
-  if ((window as any).ttq) {
-    (window as any).ttq.track("CompletePayment", {
-      contents: order.items.map(item => ({
-        content_id: item.variant?.product_id || item.product_id || item.id,
-        content_name: item.title,
-        content_type: "product",
-        quantity: item.quantity,
-        price: (item.unit_price || 0) / 100
+  // 2. Meta Pixel (Facebook) Mapping
+  if (typeof window !== "undefined" && window.fbq) {
+    const metaPayload = {
+      content_ids: data.content_ids,
+      content_type: 'product',
+      content_name: data.content_name,
+      currency: data.currency || "TRY",
+      value: data.value || 0,
+    };
+    
+    let metaEventName = "";
+    
+    switch (eventCategory) {
+      case "view_item":
+        window.fbq("track", "ViewContent", metaPayload, { eventID: data.event_id });
+        metaEventName = "ViewContent";
+        break;
+      case "add_to_cart":
+        window.fbq("track", "AddToCart", metaPayload, { eventID: data.event_id });
+        metaEventName = "AddToCart";
+        break;
+      case "begin_checkout":
+        window.fbq("track", "InitiateCheckout", metaPayload, { eventID: data.event_id });
+        metaEventName = "InitiateCheckout";
+        break;
+      case "add_payment_info":
+        window.fbq("track", "AddPaymentInfo", metaPayload, { eventID: data.event_id });
+        metaEventName = "AddPaymentInfo";
+        break;
+      case "purchase":
+        // Client-side purchase (Optional if relying solely on CAPI, but helps double tracking with eventID)
+        window.fbq("track", "Purchase", metaPayload, { eventID: data.event_id });
+        metaEventName = "Purchase";
+        break;
+      case "search":
+        window.fbq("track", "Search", { search_string: data.search_string }, { eventID: data.event_id });
+        metaEventName = "Search";
+        break;
+      case "view_category":
+        window.fbq("trackCustom", "ViewCategory", { content_category: data.content_category }, { eventID: data.event_id });
+        metaEventName = "ViewCategory";
+        break;
+      case "view_cart":
+        // ViewCart might be standard for some but custom works universally
+        window.fbq("trackCustom", "ViewCart", metaPayload);
+        metaEventName = "ViewCart"
+        break;
+    }
+
+    // Call server action for CAPI
+    if (metaEventName) {
+      sendMetaCAPIEvent(metaEventName, {
+        event_id: data.event_id || "",
+        value: data.value,
+        currency: data.currency,
+        content_ids: data.content_ids,
+        content_name: data.content_name
+      }).catch(err => console.error("CAPI dispatch error", err))
+    }
+  }
+
+  // 3. TikTok Pixel Mapping
+  if (typeof window !== "undefined" && window.ttq) {
+    const ttqPayload = {
+      contents: (data.content_ids || []).map(id => ({
+        content_id: id,
+        content_name: data.content_name,
+        content_type: 'product',
+        quantity: data.quantity || 1,
+        price: data.value || 0
       })),
-      value: order.total,
-      currency: order.currency
-    });
+      value: data.value || 0,
+      currency: data.currency || "TRY"
+    };
+
+    switch (eventCategory) {
+      case "view_item":
+        window.ttq.track("ViewContent", ttqPayload, { event_id: data.event_id });
+        break;
+      case "add_to_cart":
+        window.ttq.track("AddToCart", ttqPayload, { event_id: data.event_id });
+        break;
+      case "begin_checkout":
+        window.ttq.track("InitiateCheckout", ttqPayload, { event_id: data.event_id });
+        break;
+      case "add_payment_info":
+        window.ttq.track("AddPaymentInfo", ttqPayload, { event_id: data.event_id });
+        break;
+      case "purchase":
+        window.ttq.track("CompletePayment", ttqPayload, { event_id: data.event_id });
+        break;
+      case "search":
+        window.ttq.track("Search", { query: data.search_string });
+        break;
+      case "view_cart":
+        // TTQ standard event for cart
+        window.ttq.track("ViewCart", ttqPayload, { event_id: data.event_id });
+        break;
+      case "view_category":
+        window.ttq.track("ViewContent", ttqPayload, { event_id: data.event_id }); // TikTok often groups category view under ViewContent
+        break;
+    }
   }
+}
 
-  // 3. Google Analytics (GA4)
-  if ((window as any).gtag) {
-    (window as any).gtag("event", "purchase", {
-      transaction_id: order.id,
-      currency: order.currency,
-      value: order.total,
-      items: order.items.map(item => ({
-        item_id: item.variant?.product_id || item.product_id || item.id,
-        item_name: item.title,
-        price: (item.unit_price || 0) / 100,
-        quantity: item.quantity
-      }))
-    });
-  }
-};
-
-export const trackViewCart = (cart: { id: string; total: number; currency: string; items: any[] }) => {
-  if (typeof window === "undefined") return;
-
-  const contentIds = cart.items.map(item => item.variant?.product_id || item.product_id || item.id);
-
-  // 1. Meta Pixel
-  if ((window as any).fbq) {
-    (window as any).fbq("track", "ViewContent", {
-      content_ids: contentIds,
-      content_type: "product",
-      value: cart.total,
-      currency: cart.currency
-    });
-    (window as any).fbq("trackCustom", "ViewCart", {
-      content_ids: contentIds,
-      value: cart.total,
-      currency: cart.currency,
-      num_items: cart.items.reduce((sum, item) => sum + (item.quantity || 0), 0)
-    });
-  }
-
-  // 2. TikTok Pixel
-  if ((window as any).ttq) {
-    (window as any).ttq.track("ViewContent", {
-      contents: cart.items.map(item => ({
-        content_id: item.variant?.product_id || item.product_id || item.id,
-        content_name: item.title,
-        content_type: "product",
-        quantity: item.quantity,
-        price: (item.unit_price || 0) / 100
-      })),
-      value: cart.total,
-      currency: cart.currency
-    });
-  }
-
-  // 3. Google Analytics (GA4)
-  if ((window as any).gtag) {
-    (window as any).gtag("event", "view_cart", {
-      currency: cart.currency,
-      value: cart.total,
-      items: cart.items.map(item => ({
-        item_id: item.variant?.product_id || item.product_id || item.id,
-        item_name: item.title,
-        price: (item.unit_price || 0) / 100,
-        quantity: item.quantity
-      }))
-    });
-  }
-};
-
-export const trackAddPaymentInfo = (params: {
-  cart: { id: string; total: number; currency: string; items: any[] };
-  paymentOption: string;
-}) => {
-  if (typeof window === "undefined") return;
-
-  const { cart, paymentOption } = params;
-  const contentIds = cart.items.map(item => item.variant?.product_id || item.product_id || item.id);
-
-  // 1. Meta Pixel
-  if ((window as any).fbq) {
-    (window as any).fbq("track", "AddPaymentInfo", {
-      content_ids: contentIds,
-      content_type: "product",
-      value: cart.total,
-      currency: cart.currency,
-      payment_option: paymentOption
-    });
-  }
-
-  // 2. TikTok Pixel
-  if ((window as any).ttq) {
-    (window as any).ttq.track("AddPaymentInfo", {
-      contents: cart.items.map(item => ({
-        content_id: item.variant?.product_id || item.product_id || item.id,
-        content_name: item.title,
-        content_type: "product",
-        quantity: item.quantity,
-        price: (item.unit_price || 0) / 100
-      })),
-      value: cart.total,
-      currency: cart.currency,
-      payment_option: paymentOption
-    });
-  }
-
-  // 3. Google Analytics (GA4)
-  if ((window as any).gtag) {
-    (window as any).gtag("event", "add_payment_info", {
-      currency: cart.currency,
-      value: cart.total,
-      payment_type: paymentOption,
-      items: cart.items.map(item => ({
-        item_id: item.variant?.product_id || item.product_id || item.id,
-        item_name: item.title,
-        price: (item.unit_price || 0) / 100,
-        quantity: item.quantity
-      }))
-    });
-  }
-};
+export const trackViewCart = (data: any) => trackEvent("view_cart", { value: data.total, currency: data.currency, content_ids: data.items?.map((i:any) => i.id) || [] });
+export const trackInitiateCheckout = (data: any) => trackEvent("begin_checkout", { value: data.total, currency: data.currency });
+export const trackAddPaymentInfo = (data: any) => trackEvent("add_payment_info", { value: data.total, currency: data.currency });
+export const trackPurchase = (data: any) => trackEvent("purchase", { value: data.total, currency: data.currency });
+export const trackViewContent = (data: any) => trackEvent("view_item", { value: data.price, currency: data.currency, content_name: data.title });
+export const trackAddToCart = (data: any) => trackEvent("add_to_cart", { value: data.price, currency: data.currency, content_ids: [data.id] });
