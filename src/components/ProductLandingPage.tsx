@@ -695,6 +695,7 @@ export default function ProductLandingPage({ product }: ProductLandingPageProps)
         
         // Save the payment method to the order metadata
         try {
+          const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000"
           await fetch(`${backendUrl}/store/update-order-payment`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
