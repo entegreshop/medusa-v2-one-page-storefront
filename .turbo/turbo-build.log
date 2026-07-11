@@ -1,0 +1,148 @@
+npm warn Unknown project config "auto-install-peers". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> medusa-next@1.0.3 build
+> next build
+
+   ▲ Next.js 15.3.9
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 74s
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/3307) ...
+Error occurred prerendering page "/404". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: Cannot find module './7496.js'
+Require stack:
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\webpack-runtime.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\pages\_document.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\load-components.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\build\utils.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\build\worker.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\compiled\jest-worker\processChild.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1456:15)
+    at C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1556:12)
+    at mod.require (C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at __webpack_require__.f.require (C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\webpack-runtime.js:203:28)
+Export encountered an error on /_error: /404, exiting the build.
+Error occurred prerendering page "/no/categories/sweat". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: Cannot find module './vendor-chunks/next.js'
+Require stack:
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\webpack-runtime.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\app\[countryCode]\(main)\categories\[...category]\page.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\load-components.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\build\utils.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\build\worker.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\compiled\jest-worker\processChild.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1456:15)
+    at C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1556:12)
+    at mod.require (C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at __webpack_require__.f.require (C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\webpack-runtime.js:203:28)
+Export encountered an error on /[countryCode]/(main)/categories/[...category]/page: /no/categories/sweat, exiting the build.
+Error occurred prerendering page "/fi/products/lacivert-yuksel-bel-inceltici-esnek-likrali-kot-tayt". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: Cannot find module './vendor-chunks/next.js'
+Require stack:
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\webpack-runtime.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\app\[countryCode]\(main)\products\[handle]\page.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\load-components.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\build\utils.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\build\worker.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\compiled\jest-worker\processChild.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1456:15)
+    at C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1556:12)
+    at mod.require (C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at __webpack_require__.f.require (C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\webpack-runtime.js:203:28)
+Export encountered an error on /[countryCode]/(main)/products/[handle]/page: /fi/products/lacivert-yuksel-bel-inceltici-esnek-likrali-kot-tayt, exiting the build.
+Error occurred prerendering page "/be/products/bej-oysho-yirtmacli-modal-oversize-tshirt". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: Cannot find module './vendor-chunks/next.js'
+Require stack:
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\webpack-runtime.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\app\[countryCode]\(main)\products\[handle]\page.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\load-components.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\build\utils.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\build\worker.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\compiled\jest-worker\processChild.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1456:15)
+    at C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1556:12)
+    at mod.require (C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at __webpack_require__.f.require (C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\webpack-runtime.js:203:28)
+Export encountered an error on /[countryCode]/(main)/products/[handle]/page: /be/products/bej-oysho-yirtmacli-modal-oversize-tshirt, exiting the build.
+Error occurred prerendering page "/es/products/siyah-cift-serit-kargo-cep-parasut-esofman". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: Cannot find module './vendor-chunks/next.js'
+Require stack:
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\webpack-runtime.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\app\[countryCode]\(main)\products\[handle]\page.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\load-components.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\build\utils.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\build\worker.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\compiled\jest-worker\processChild.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1456:15)
+    at C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1556:12)
+    at mod.require (C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at __webpack_require__.f.require (C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\webpack-runtime.js:203:28)
+Export encountered an error on /[countryCode]/(main)/products/[handle]/page: /es/products/siyah-cift-serit-kargo-cep-parasut-esofman, exiting the build.
+Error occurred prerendering page "/no/products/kahve-ispanyol-paca-oysho-tayt". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: Cannot find module './vendor-chunks/next.js'
+Require stack:
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\webpack-runtime.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\app\[countryCode]\(main)\products\[handle]\page.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\load-components.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\build\utils.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\build\worker.js
+- C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\compiled\jest-worker\processChild.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1456:15)
+    at C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1556:12)
+    at mod.require (C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at __webpack_require__.f.require (C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront\.next\server\webpack-runtime.js:203:28)
+Export encountered an error on /[countryCode]/(main)/products/[handle]/page: /no/products/kahve-ispanyol-paca-oysho-tayt, exiting the build.
+ ⨯ Next.js build worker exited with code: 1 and signal: null
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront
+npm error workspace medusa-next@1.0.3
+npm error location C:\Users\Asus\Desktop\XOOX Medusa V2 Project\XOOX Medusa V2 Project\apps\storefront
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c next build

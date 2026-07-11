@@ -1,7 +1,7 @@
 "use server"
 
 import { headers, cookies } from "next/headers"
-
+import { crypto } from "crypto" // Node.js crypto for hashing if needed, but Facebook accepts SHA256 hashed data.
 
 interface CapiEventData {
   event_name: string
@@ -29,7 +29,11 @@ interface CapiEventData {
 async function getPixelConfig() {
   try {
     const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "https://api.cizgibutik.com"
+    const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || ""
     const res = await fetch(`${backendUrl}/store/pixel-settings`, {
+      headers: {
+        "x-publishable-api-key": publishableKey
+      },
       next: { revalidate: 60 } // Cache config for 60 seconds
     })
     const data = await res.json()
@@ -58,8 +62,8 @@ export async function sendMetaCAPIEvent(
       return { success: false, reason: "CAPI not configured or inactive" }
     }
 
-    const headersList = await headers()
-    const cookieStore = await cookies()
+    const headersList = headers()
+    const cookieStore = cookies()
     
     const clientIp = headersList.get("x-forwarded-for")?.split(',')[0] || headersList.get("x-real-ip") || ""
     const userAgent = headersList.get("user-agent") || ""
