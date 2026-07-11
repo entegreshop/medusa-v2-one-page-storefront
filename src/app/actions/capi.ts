@@ -58,8 +58,8 @@ export async function sendMetaCAPIEvent(
       return { success: false, reason: "CAPI not configured or inactive" }
     }
 
-    const headersList = headers()
-    const cookieStore = cookies()
+    const headersList = await headers()
+    const cookieStore = await cookies()
     
     const clientIp = headersList.get("x-forwarded-for")?.split(',')[0] || headersList.get("x-real-ip") || ""
     const userAgent = headersList.get("user-agent") || ""
