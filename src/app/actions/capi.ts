@@ -1,7 +1,7 @@
 "use server"
 
 import { headers, cookies } from "next/headers"
-import { crypto } from "crypto" // Node.js crypto for hashing if needed, but Facebook accepts SHA256 hashed data.
+
 
 interface CapiEventData {
   event_name: string
