@@ -1,12 +1,6 @@
 import Medusa from "@medusajs/js-sdk"
 
-let baseUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9001"
-
-if (typeof window !== "undefined") {
-  baseUrl = window.location.origin
-} else if (baseUrl.includes("localhost") && process.env.NODE_ENV === "production") {
-  baseUrl = "http://204.168.136.196:9001"
-}
+const baseUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "https://api.cizgibutik.com"
 
 export const medusa = new Medusa({
   baseUrl,

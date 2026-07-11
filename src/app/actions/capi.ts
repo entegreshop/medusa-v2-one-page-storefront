@@ -28,7 +28,7 @@ interface CapiEventData {
 // Fetch pixel config from backend
 async function getPixelConfig() {
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000"
+    const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "https://api.cizgibutik.com"
     const res = await fetch(`${backendUrl}/store/pixel-settings`, {
       next: { revalidate: 60 } // Cache config for 60 seconds
     })
