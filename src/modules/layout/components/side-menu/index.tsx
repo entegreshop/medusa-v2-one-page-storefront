@@ -142,7 +142,7 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
                 leaveFrom="translate-x-0"
                 leaveTo="-translate-x-full"
               >
-                <PopoverPanel className="flex flex-col fixed inset-0 w-full h-[100dvh] z-[100] bg-white overflow-hidden">
+                <PopoverPanel className="flex flex-col fixed inset-y-0 left-0 w-full sm:w-[400px] h-[100dvh] z-[100] bg-white overflow-hidden shadow-2xl">
                   <div className="flex flex-col h-full bg-white relative">
                     {/* Header: Logo and Close Button */}
                     <div className="flex items-center justify-between p-4 pb-2">
