@@ -565,11 +565,11 @@ export default function SinglePageCheckout({
       }
 
       // 3. Initiate payment session
-      let providerId = "pp_system_default"
-      if (paymentMethod === "paytr") providerId = "pp_paytr_paytr"
-      else if (paymentMethod === "bank_transfer") providerId = "pp_bank-transfer_bank-transfer"
-      else if (paymentMethod === "cash_on_delivery") providerId = "pp_cash-on-delivery_cash-on-delivery"
-      else if (paymentMethod === "card_on_delivery") providerId = "pp_card-on-delivery_card-on-delivery"
+      let providerId = "system"
+      if (paymentMethod === "paytr") providerId = "paytr"
+      else if (paymentMethod === "bank_transfer") providerId = "TRANSFER"
+      else if (paymentMethod === "cash_on_delivery") providerId = "CASH"
+      else if (paymentMethod === "card_on_delivery") providerId = "system"
 
       await initiatePaymentSession(updatedCart || cart, {
         provider_id: providerId
