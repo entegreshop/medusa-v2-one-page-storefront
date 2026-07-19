@@ -43,13 +43,22 @@ const ImageGallery = ({ images }: ImageGalleryProps) => {
               }`}
             >
               {image.url && (
-                <Image
-                  alt={`Thumbnail ${index + 1}`}
-                  src={image.url}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                />
+                image.url.match(/\.(mp4|webm|mov)$/i) ? (
+                  <video
+                    src={image.url}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    muted
+                    playsInline
+                  />
+                ) : (
+                  <Image
+                    alt={`Thumbnail ${index + 1}`}
+                    src={image.url}
+                    fill
+                    className="object-cover"
+                    sizes="80px"
+                  />
+                )
               )}
             </button>
           ))}
@@ -59,14 +68,25 @@ const ImageGallery = ({ images }: ImageGalleryProps) => {
       {/* Main Image */}
       <div className="relative aspect-[3/4] w-full flex-grow overflow-hidden bg-gray-50 border border-gray-100 group">
         {images[activeIndex]?.url && (
-          <Image
-            alt="Product Image"
-            src={images[activeIndex].url}
-            fill
-            priority
-            className="object-cover"
-            sizes="(max-width: 1024px) 100vw, 800px"
-          />
+          images[activeIndex].url.match(/\.(mp4|webm|mov)$/i) ? (
+            <video
+              src={images[activeIndex].url}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <Image
+              alt="Product Image"
+              src={images[activeIndex].url}
+              fill
+              priority
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 800px"
+            />
+          )
         )}
 
         {/* Navigation Buttons */}
