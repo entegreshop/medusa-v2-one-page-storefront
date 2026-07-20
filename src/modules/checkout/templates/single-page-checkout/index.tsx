@@ -566,10 +566,10 @@ export default function SinglePageCheckout({
 
       // 3. Initiate payment session
       let providerId = "system"
-      if (paymentMethod === "paytr") providerId = "PAYTR"
-      else if (paymentMethod === "bank_transfer") providerId = "BANK-TRANSFER"
-      else if (paymentMethod === "cash_on_delivery") providerId = "CASH-ON-DELIVERY"
-      else if (paymentMethod === "card_on_delivery") providerId = "CARD-ON-DELIVERY"
+      if (paymentMethod === "paytr") providerId = "pp_custom-payment_PAYTR"
+      else if (paymentMethod === "bank_transfer") providerId = "pp_custom-payment_BANK-TRANSFER"
+      else if (paymentMethod === "cash_on_delivery") providerId = "pp_custom-payment_CASH-ON-DELIVERY"
+      else if (paymentMethod === "card_on_delivery") providerId = "pp_custom-payment_CARD-ON-DELIVERY"
 
       await initiatePaymentSession(updatedCart || cart, {
         provider_id: providerId
