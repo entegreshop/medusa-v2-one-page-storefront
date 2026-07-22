@@ -263,6 +263,10 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
         if (!sessionInitiated) {
             throw new Error(`Ödeme başlatılamadı (Ana Hata): An unknown error occurred. | (Yedek Hata): An unknown error occurred.`);
         }
+      } catch (e: any) {
+          logToFile("Payment session hatasi 1: " + e.message);
+          throw new Error(`Ödeme başlatılamadı (Ana Hata): ${e.message}`);
+      }
 
     // 5. Siparisi Tamamla
     logToFile("5. Siparis isleniyor, payment method: " + data.payment_method);
