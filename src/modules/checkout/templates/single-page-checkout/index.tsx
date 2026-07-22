@@ -579,6 +579,9 @@ export default function SinglePageCheckout({
       await placeOrder(cart.id)
 
     } catch (err: any) {
+      if (err?.message === "NEXT_REDIRECT" || err?.digest?.startsWith("NEXT_REDIRECT")) {
+        throw err;
+      }
       setErrorMessage(err.message || "Sipariş tamamlanırken bir hata oluştu.")
       setIsSubmitting(false)
     }
