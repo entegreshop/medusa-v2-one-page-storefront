@@ -228,30 +228,41 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
         logToFile("Retrieving cart...");
         const { cart } = await sdk.store.cart.retrieve(targetCartId);
         
-        let providerId = "pp_system_default";
-        if (data.payment_method === "credit_card") providerId = "pp_paytr"
-        else if (data.payment_method === "havale") providerId = "pp_bank_transfer"
-        else if (data.payment_method === "cash_on_delivery" || data.payment_method === "cod_cc") providerId = "pp_cod_cash"
-
-        logToFile("Initiating payment session with providerId: " + providerId);
-        await sdk.store.payment.initiatePaymentSession(cart as any, { provider_id: providerId }, {}, headers)
-        logToFile("Payment session initiated");
-    } catch(e: any) {
-        logToFile("Payment session hatasi 1: " + e.message);
-        try {
-           // Fallback to old naming without pp_ prefix just in case
-           const { cart } = await sdk.store.cart.retrieve(targetCartId);
-           let fallbackId = "manual";
-           if (data.payment_method === "credit_card") fallbackId = "paytr"
-           else if (data.payment_method === "havale") fallbackId = "bank_transfer"
-           else if (data.payment_method === "cash_on_delivery" || data.payment_method === "cod_cc") fallbackId = "cod_cash"
-           
-           await sdk.store.payment.initiatePaymentSession(cart as any, { provider_id: fallbackId }, {}, headers)
-        } catch(fallbackErr: any) {
-           console.error("Payment session hatasi 2:", fallbackErr.message)
-           throw new Error(`Ödeme başlatılamadı (Ana Hata): ${e.message} | (Yedek Hata): ${fallbackErr.message}`)
+        let providerIdsToTry: string[] = [];
+        if (data.payment_method === "credit_card") {
+            providerIdsToTry = ["pp_custom-payment_paytr", "pp_custom-payment_PAYTR", "pp_PAYTR", "PAYTR", "pp_paytr", "paytr"];
+        } else if (data.payment_method === "havale") {
+            providerIdsToTry = ["pp_custom-payment_bank-transfer", "pp_custom-payment_BANK-TRANSFER", "pp_BANK-TRANSFER", "BANK-TRANSFER", "pp_bank_transfer", "bank_transfer"];
+        } else if (data.payment_method === "cash_on_delivery" || data.payment_method === "cod_cc") {
+            // Eger cod_cc secildiyse, oncelikli olarak card-on-delivery'yi dene.
+            if (data.payment_method === "cod_cc") {
+               providerIdsToTry = ["pp_custom-payment_card-on-delivery", "pp_custom-payment_CARD-ON-DELIVERY", "pp_CARD-ON-DELIVERY", "CARD-ON-DELIVERY", "pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"];
+            } else {
+               providerIdsToTry = ["pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"];
+            }
+        } else {
+            providerIdsToTry = ["pp_system_default"];
         }
-    }
+
+        let sessionInitiated = false;
+        let lastError = null;
+
+        for (const pId of providerIdsToTry) {
+            try {
+                logToFile("Trying providerId: " + pId);
+                await sdk.store.payment.initiatePaymentSession(cart as any, { provider_id: pId }, {}, headers);
+                logToFile("Success with providerId: " + pId);
+                sessionInitiated = true;
+                break;
+            } catch (e: any) {
+                logToFile("Failed providerId: " + pId + " - " + e.message);
+                lastError = e;
+            }
+        }
+
+        if (!sessionInitiated) {
+            throw new Error(`Ödeme başlatılamadı (Ana Hata): An unknown error occurred. | (Yedek Hata): An unknown error occurred.`);
+        }
 
     // 5. Siparisi Tamamla
     logToFile("5. Siparis isleniyor, payment method: " + data.payment_method);
