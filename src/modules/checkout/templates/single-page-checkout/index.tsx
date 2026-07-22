@@ -565,15 +565,31 @@ export default function SinglePageCheckout({
       }
 
       // 3. Initiate payment session
-      let providerId = "system"
-      if (paymentMethod === "paytr") providerId = "PAYTR"
-      else if (paymentMethod === "bank_transfer") providerId = "BANK-TRANSFER"
-      else if (paymentMethod === "cash_on_delivery") providerId = "CASH-ON-DELIVERY"
-      else if (paymentMethod === "card_on_delivery") providerId = "CARD-ON-DELIVERY"
+      let providerIdsToTry: string[] = []
+      if (paymentMethod === "paytr") providerIdsToTry = ["pp_custom-payment_paytr", "pp_custom-payment_PAYTR", "pp_PAYTR", "PAYTR", "pp_paytr", "paytr"]
+      else if (paymentMethod === "bank_transfer") providerIdsToTry = ["pp_custom-payment_bank-transfer", "pp_custom-payment_BANK-TRANSFER", "pp_BANK-TRANSFER", "BANK-TRANSFER", "pp_bank_transfer", "bank_transfer"]
+      else if (paymentMethod === "cash_on_delivery") providerIdsToTry = ["pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"]
+      else if (paymentMethod === "card_on_delivery") providerIdsToTry = ["pp_custom-payment_card-on-delivery", "pp_custom-payment_CARD-ON-DELIVERY", "pp_CARD-ON-DELIVERY", "CARD-ON-DELIVERY", "pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"]
+      else providerIdsToTry = ["pp_system_default"]
 
-      await initiatePaymentSession(updatedCart || cart, {
-        provider_id: providerId
-      })
+      let sessionInitiated = false;
+      let lastError = null;
+
+      for (const pId of providerIdsToTry) {
+        try {
+          await initiatePaymentSession(updatedCart || cart, {
+            provider_id: pId
+          })
+          sessionInitiated = true;
+          break;
+        } catch (e: any) {
+          lastError = e;
+        }
+      }
+
+      if (!sessionInitiated) {
+        throw new Error(`Kabul edilen ödeme altyapısı bulunamadı (Ana Hata): ${lastError?.message || 'Bilinmiyor'}`);
+      }
 
       // 4. Place order
       await placeOrder(cart.id)
