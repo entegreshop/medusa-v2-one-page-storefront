@@ -261,11 +261,11 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
         }
 
         if (!sessionInitiated) {
-            throw new Error(`Ödeme başlatılamadı (Ana Hata): An unknown error occurred. | (Yedek Hata): An unknown error occurred.`);
+            throw new Error(`Kabul edilen ödeme altyapısı bulunamadı. Lütfen mağaza yöneticisi ile iletişime geçin. Hata: ${lastError?.message || "Bilinmiyor"}`);
         }
       } catch (e: any) {
           logToFile("Payment session hatasi 1: " + e.message);
-          throw new Error(`Ödeme başlatılamadı (Ana Hata): ${e.message}`);
+          throw e; // Rethrow directly without wrapping again to avoid double prefix
       }
 
     // 5. Siparisi Tamamla
