@@ -57,6 +57,10 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "cdn.myikas.com",
+      },
+      {
+        protocol: "https",
         hostname: "api.bodykitmerkezi.com",
       },
       ...(S3_HOSTNAME && S3_PATHNAME
