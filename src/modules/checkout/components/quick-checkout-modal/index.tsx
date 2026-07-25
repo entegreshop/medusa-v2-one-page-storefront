@@ -145,18 +145,18 @@ export default function QuickCheckoutModal({
              }
           }).catch(err => console.error("COD bilgieri çekilemedi", err))
 
+       fetch(`${MEDUSA_URL}/store/logo-config`, fetchOptions)
+          .then(res => res.json())
+          .then(data => {
+              if (data?.config) {
+                 setStoreLogoUrl(data.config.checkoutLogo || data.config.logo || "/logo.png");
+              }
+          }).catch(err => console.error("Logo config çekilemedi", err))
+
        fetch(`${MEDUSA_URL}/store/custom/settings`, fetchOptions)
           .then(res => res.json())
           .then(data => {
               if (data?.settings) {
-                  if (data.settings.admin_logos?.main) {
-                      let mainLogo = data.settings.admin_logos.main;
-                      if (mainLogo.includes("localhost:9000")) {
-                          mainLogo = mainLogo.replace(/http:\/\/localhost:9000/g, MEDUSA_URL);
-                      }
-                      setStoreLogoUrl(mainLogo);
-                  }
-                  
                   setPaymentSettings({
                      bank_active: data.settings.payment_bank?.active !== false, // default true if undefined
                      paytr_active: data.settings.payment_paytr?.active !== false,
