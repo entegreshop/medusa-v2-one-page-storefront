@@ -64,16 +64,29 @@ export default async function Home(props: {
   const marqueeText = config?.scrolling_text_home
   const repeatedText = marqueeText ? Array(8).fill(marqueeText).join("\u00A0\u00A0\u00A0\u00A0\u00A0•\u00A0\u00A0\u00A0\u00A0\u00A0") + "\u00A0\u00A0\u00A0\u00A0\u00A0•\u00A0\u00A0\u00A0\u00A0\u00A0" : ""
 
-  const categoryQuery = searchParams.category || "cok-satanlar"
+  const categoryQuery = searchParams.category || "yeni-gelenler"
   
   let products: any[] = []
   let count = 0
-  let sectionTitle = "Çok Satanlar"
+  let sectionTitle = "Yeni Gelenler"
   let viewAllLink = "/store"
   let activeCategoryId: string | undefined = undefined
   let activeCollectionId: string | undefined = undefined
 
-  if (categoryQuery === "cok-satanlar") {
+  if (categoryQuery === "yeni-gelenler") {
+    const res = await listProducts({
+      regionId: region.id,
+      queryParams: {
+        fields: "*variants.calculated_price",
+        limit: 12,
+        order: "-created_at",
+      },
+    })
+    products = res.response.products
+    count = res.response.count
+    sectionTitle = "Yeni Gelenler"
+    viewAllLink = `/store`
+  } else if (categoryQuery === "cok-satanlar") {
     const cokSatanlarCollection = collections.find(
       (c) => c.handle === "çok-satanlar" || c.handle === "cok-satanlar"
     ) || collections[0]
