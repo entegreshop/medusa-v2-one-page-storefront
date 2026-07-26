@@ -1,5 +1,6 @@
 import { sdk } from "@lib/config"
 import PixelRouteTracker from "./route-tracker"
+import { Suspense } from "react"
 
 export default async function PixelScripts() {
   let config = null
@@ -25,7 +26,9 @@ export default async function PixelScripts() {
   return (
     <>
       {/* Dynamic Navigation & PageView Tracker */}
-      <PixelRouteTracker config={config} />
+      <Suspense fallback={null}>
+        <PixelRouteTracker config={config} />
+      </Suspense>
 
       {/* 1. Meta Pixel */}
       {meta_pixel?.active && meta_pixel?.pixel_id && (
