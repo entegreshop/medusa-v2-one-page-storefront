@@ -29,6 +29,7 @@ type SideMenuProps = {
   locales: Locale[] | null
   currentLocale: string | null
   categories?: any[] | null
+  logoConfig?: any | null
 }
 
 const ChevronDown = ({ className }: { className?: string }) => (
@@ -83,7 +84,7 @@ const DocumentIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps) => {
+const SideMenu = ({ regions, locales, currentLocale, categories, logoConfig }: SideMenuProps) => {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({})
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
@@ -147,8 +148,27 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
                     {/* Header: Logo and Close Button */}
                     <div className="flex items-center justify-between p-4 pb-2">
                        {/* Left space for alignment or site logo */}
-                       <div className="flex-1">
-                         <span className="font-bold text-2xl tracking-widest uppercase text-black">XOOX</span>
+                       <div className="flex-1 flex items-center">
+                         {logoConfig?.logo || logoConfig?.mobileLogo ? (
+                           <>
+                             {logoConfig.mobileLogo ? (
+                               <img 
+                                 src={logoConfig.mobileLogo} 
+                                 alt="Store Logo" 
+                                 className={`h-7 w-auto object-contain ${logoConfig.logo ? 'block md:hidden' : ''}`} 
+                               />
+                             ) : null}
+                             {logoConfig.logo ? (
+                               <img 
+                                 src={logoConfig.logo} 
+                                 alt="Store Logo" 
+                                 className={`h-8 w-auto object-contain ${logoConfig.mobileLogo ? 'hidden md:block' : ''}`} 
+                               />
+                             ) : null}
+                           </>
+                         ) : (
+                           <span className="font-bold text-2xl tracking-widest uppercase text-black">XOOX</span>
+                         )}
                        </div>
                        
                        <div className="flex items-center gap-4">
