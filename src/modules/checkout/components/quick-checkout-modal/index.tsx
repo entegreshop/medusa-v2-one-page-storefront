@@ -70,6 +70,7 @@ export default function QuickCheckoutModal({
   const ARAS_BASE64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iNDAiPjx0ZXh0IHg9IjEwIiB5PSIyNSIgZmlsbD0iIzEzMkI1QiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjIyIiBmb250LXdlaWdodD0iYm9sZCI+QVJBUzwvdGV4dD48L3N2Zz4=";
   const [arasLogoUrl, setArasLogoUrl] = useState(ARAS_BASE64);
   const [storeLogoUrl, setStoreLogoUrl] = useState("/logo.png");
+  const [footerCopyrightText, setFooterCopyrightText] = useState("");
 
   // Popup açma fonksiyonu
   const openPopup = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
@@ -150,6 +151,9 @@ export default function QuickCheckoutModal({
           .then(data => {
               if (data?.config) {
                  setStoreLogoUrl(data.config.checkoutLogo || data.config.logo || "/logo.png");
+                 if (data.config.footerCopyrightText) {
+                    setFooterCopyrightText(data.config.footerCopyrightText);
+                 }
               }
           }).catch(err => console.error("Logo config çekilemedi", err))
 
@@ -687,7 +691,7 @@ export default function QuickCheckoutModal({
             <div className="pt-10 pb-8 flex flex-col items-center justify-center space-y-4">
                <div className="text-center space-y-1">
                   <p className="text-[12.5px] text-[#8c8c8c] font-medium tracking-wide">Tüm bilgileriniz 256bit SSL Sertifikası ile korunmaktadır.</p>
-                  <p className="text-[12.5px] text-[#8c8c8c] font-medium tracking-wide">{logoConfigState?.footerCopyrightText || `© ${new Date().getFullYear()} Kombingo.com Tüm Hakları Saklıdır`}</p>
+                  <p className="text-[12.5px] text-[#8c8c8c] font-medium tracking-wide">{footerCopyrightText || `© ${new Date().getFullYear()} Kombingo.com Tüm Hakları Saklıdır`}</p>
                </div>
                <div className="flex items-center gap-x-3 mt-4 w-full justify-center">
                   <div className="w-[50px] h-[32px] border border-gray-200 rounded flex items-center justify-center bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] px-1.5">
