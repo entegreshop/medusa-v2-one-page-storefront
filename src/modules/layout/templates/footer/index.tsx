@@ -111,7 +111,7 @@ export default async function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between py-6 gap-y-4">
           <div className="flex flex-col text-[11px] text-gray-500 text-center md:text-left gap-y-1">
             <span>Tüm bilgileriniz 256 bit SSL Sertifikası ile korunmaktadır.</span>
-            <span>© {new Date().getFullYear()} Kombingo.com Tüm Hakları Saklıdır</span>
+            <span>{logoConfig?.footerCopyrightText || `© ${new Date().getFullYear()} Kombingo.com Tüm Hakları Saklıdır`}</span>
           </div>
           
           <div className="flex items-center gap-x-2">

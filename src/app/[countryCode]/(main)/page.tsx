@@ -15,7 +15,6 @@ import { getCategoryByHandle } from "@lib/data/categories"
 import { listProducts } from "@lib/data/products"
 
 export const metadata: Metadata = {
-  title: "XOOX Medusa Storefront",
   description: "A performant international storefront for XOOX Commerce.",
 }
 

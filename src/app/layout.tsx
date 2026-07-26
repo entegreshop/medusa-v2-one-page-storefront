@@ -12,18 +12,14 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export async function generateMetadata(): Promise<Metadata> {
   const logoConfig = await getLogoConfig()
-  
-  if (logoConfig?.favicon) {
-    return {
-      icons: {
-        icon: logoConfig.favicon,
-        shortcut: logoConfig.favicon,
-        apple: logoConfig.favicon,
-      },
-    }
+  return {
+    title: logoConfig?.siteTitle || "XOOX Medusa Storefront",
+    icons: logoConfig?.favicon ? {
+      icon: logoConfig.favicon,
+      shortcut: logoConfig.favicon,
+      apple: logoConfig.favicon,
+    } : undefined,
   }
-
-  return {}
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

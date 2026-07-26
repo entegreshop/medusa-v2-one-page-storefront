@@ -687,7 +687,7 @@ export default function QuickCheckoutModal({
             <div className="pt-10 pb-8 flex flex-col items-center justify-center space-y-4">
                <div className="text-center space-y-1">
                   <p className="text-[12.5px] text-[#8c8c8c] font-medium tracking-wide">Tüm bilgileriniz 256bit SSL Sertifikası ile korunmaktadır.</p>
-                  <p className="text-[12.5px] text-[#8c8c8c] font-medium tracking-wide">© {new Date().getFullYear()} Kombingo.com Tüm Hakları Saklıdır</p>
+                  <p className="text-[12.5px] text-[#8c8c8c] font-medium tracking-wide">{logoConfigState?.footerCopyrightText || `© ${new Date().getFullYear()} Kombingo.com Tüm Hakları Saklıdır`}</p>
                </div>
                <div className="flex items-center gap-x-3 mt-4 w-full justify-center">
                   <div className="w-[50px] h-[32px] border border-gray-200 rounded flex items-center justify-center bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] px-1.5">
