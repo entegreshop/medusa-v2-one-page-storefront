@@ -236,11 +236,11 @@ export default function ProductActions({
         return v.options?.every((opt: any) => {
           if (renkOption && opt.option_id === renkOption.id) {
             if (!urlRenk) return true
-            return opt.value?.toLowerCase() === urlRenk.toLowerCase()
+            return opt.value?.trim().toLowerCase() === urlRenk.trim().toLowerCase()
           }
           if (bedenOption && opt.option_id === bedenOption.id) {
             if (!urlBeden) return true
-            return opt.value?.toLowerCase() === urlBeden.toLowerCase()
+            return opt.value?.trim().toLowerCase() === urlBeden.trim().toLowerCase()
           }
           return true
         })
@@ -396,7 +396,7 @@ export default function ProductActions({
         setIsAdded(false)
       }, 1500)
     } catch (e: any) {
-      alert("Ürün sepete eklenirken bir hata oluştu. " + (e?.message?.includes("inventory") ? "Ürün stokta kalmamış olabilir." : (e?.message || "")))
+      alert("Ürün sepete eklenirken bir hata oluştu. Lütfen sayfayı yenileyip tekrar deneyin.")
     } finally {
       setIsAdding(false)
     }
@@ -429,7 +429,7 @@ export default function ProductActions({
 
       router.push(`/${countryCode}/cart`)
     } catch (e: any) {
-      alert("Hemen al işlemi başlatılamadı. " + (e?.message?.includes("inventory") ? "Ürün stokta kalmamış olabilir." : (e?.message || "")))
+      alert("Hemen al işlemi başlatılamadı. Lütfen sayfayı yenileyip tekrar deneyin.")
     } finally {
       setIsBuyingNow(false)
     }
