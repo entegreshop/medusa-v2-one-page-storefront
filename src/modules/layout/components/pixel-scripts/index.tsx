@@ -5,10 +5,12 @@ import { Suspense } from "react"
 export default async function PixelScripts() {
   let config = null
   try {
-    const res = await sdk.client.fetch<{ config: any }>("/store/pixel-settings", {
+    const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "https://api.cizgibutik.com"
+    const res = await fetch(`${backendUrl}/store/pixel-settings`, {
       next: { revalidate: 300 }, // Cache for 5 mins
     })
-    config = res?.config
+    const data = await res.json()
+    config = data?.config
   } catch (e) {
     console.error("Error loading pixel settings on storefront:", e)
   }
