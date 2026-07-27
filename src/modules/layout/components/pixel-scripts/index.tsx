@@ -6,7 +6,7 @@ export default async function PixelScripts() {
   let config = null
   try {
     const res = await sdk.client.fetch<{ config: any }>("/store/pixel-settings", {
-      cache: "no-store",
+      next: { revalidate: 300 }, // Cache for 5 mins
     })
     config = res?.config
   } catch (e) {
