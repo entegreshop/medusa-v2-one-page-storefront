@@ -97,11 +97,11 @@ export default async function Footer() {
           <div className="flex flex-col gap-y-4">
             <span className="font-bold text-[15px] text-black">Bize Ulaşın</span>
             <div className="flex flex-col gap-y-3 text-gray-500 text-[13px] leading-relaxed">
-              <p className="font-semibold text-gray-800">ÖZSE MODA TEKSTİL LTD. ŞTİ.</p>
-              <p>Adres: Merkez Mahallesi Merter Sokak NO 44 Güngören / İstanbul</p>
-              <p>Tel: +90 530 456 43 77</p>
-              <p>E-posta: info@kombingo.com</p>
-              <p>Hafta içi 09.00 - 19.00, Cumartesi 10.00 - 17.00 saatleri arasında ulaşabilirsiniz.</p>
+              <p className="font-semibold text-gray-800">{logoConfig?.contactCompany || "ÖZSE MODA TEKSTİL LTD. ŞTİ."}</p>
+              <p>{logoConfig?.contactAddress || "Adres: Merkez Mahallesi Merter Sokak NO 44 Güngören / İstanbul"}</p>
+              <p>{logoConfig?.contactPhone || "Tel: +90 530 456 43 77"}</p>
+              <p>{logoConfig?.contactEmail || "E-posta: info@kombingo.com"}</p>
+              <p>{logoConfig?.contactHours || "Hafta içi 09.00 - 19.00, Cumartesi 10.00 - 17.00 saatleri arasında ulaşabilirsiniz."}</p>
             </div>
           </div>
 
