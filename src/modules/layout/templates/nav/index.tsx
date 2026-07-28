@@ -22,7 +22,7 @@ async function getHeroConfig() {
       headers["x-publishable-api-key"] = NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
     }
     const res = await fetch(`${NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/hero-config`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
       headers,
     })
     const data = await res.json()
@@ -154,3 +154,4 @@ export default async function Nav() {
     </div>
   )
 }
+

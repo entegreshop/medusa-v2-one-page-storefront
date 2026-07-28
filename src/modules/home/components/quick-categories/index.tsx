@@ -54,7 +54,7 @@ async function getCategoriesConfig() {
     }
 
     const res = await fetch(`${NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/hero-config`, {
-      cache: "no-store", // Ensure real-time configuration loading
+      next: { revalidate: 60 }, // Ensure real-time configuration loading
       headers,
     })
     const data = await res.json()
@@ -110,4 +110,5 @@ export default async function QuickCategories() {
     </div>
   )
 }
+
 

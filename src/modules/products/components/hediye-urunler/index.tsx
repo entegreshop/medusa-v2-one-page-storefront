@@ -16,7 +16,7 @@ export default async function HediyeUrunler({
 
   try {
     const res = await fetch(`${MEDUSA_BACKEND_URL}/store/custom/kampanyalar`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
       headers: {
         "x-publishable-api-key": process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "pk_2c282ff4870aa9a458b774fc276908462c41f9626349330ff535a7bce4852274"
       }
@@ -53,3 +53,4 @@ export default async function HediyeUrunler({
 
   return <HediyeUrunlerClient product={product} region={region} settings={settings} giftProducts={giftProducts} />
 }
+
