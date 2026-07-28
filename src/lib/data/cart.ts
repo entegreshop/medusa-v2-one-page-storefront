@@ -170,8 +170,15 @@ export async function addToCart({
       revalidateTag(fulfillmentCacheTag)
       console.log("Caches revalidated. addToCart finished.")
     })
-    .catch((err) => {
+    .catch(async (err) => {
       console.error("Error in createLineItem:", err)
+      try {
+        await removeCartId()
+        const cartCacheTag = await getCacheTag("carts")
+        revalidateTag(cartCacheTag)
+      } catch (e) {
+        console.error("Failed to clear corrupted cart", e)
+      }
       medusaError(err)
     })
 }

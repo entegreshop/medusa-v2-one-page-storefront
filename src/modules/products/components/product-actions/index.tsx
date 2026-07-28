@@ -245,6 +245,24 @@ export default function ProductActions({
           return true
         })
       })
+      
+      // Fallback 1: Try to match JUST the Color (Renk)
+      if (!matchedVariant && urlRenk && renkOption) {
+        matchedVariant = product.variants.find((v) => {
+          return v.options?.some((opt: any) => {
+            return opt.option_id === renkOption.id && opt.value?.trim().toLowerCase() === urlRenk.trim().toLowerCase()
+          })
+        })
+      }
+      
+      // Fallback 2: Try to match JUST the Size (Beden)
+      if (!matchedVariant && urlBeden && bedenOption) {
+        matchedVariant = product.variants.find((v) => {
+          return v.options?.some((opt: any) => {
+            return opt.option_id === bedenOption.id && opt.value?.trim().toLowerCase() === urlBeden.trim().toLowerCase()
+          })
+        })
+      }
     }
 
     // If no variant matches the URL params, or URL params not specified
