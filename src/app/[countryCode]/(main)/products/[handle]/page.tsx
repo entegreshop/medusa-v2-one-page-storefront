@@ -252,6 +252,24 @@ export default async function ProductPage(props: Props) {
     selectedVariantId = findVariantIdByOptions(pricedProduct, searchParams)
   }
 
+  // XML entegrasyonlarında description içine devasa base64 görseller eklenebiliyor.
+  // Bu durum Next.js RSC payload'unu MB'larca şişirerek tarayıcıyı donduruyor (donma sorunu).
+  // Bunu engellemek için description içindeki base64 src verilerini temizleyelim.
+  if (pricedProduct.description) {
+    pricedProduct.description = pricedProduct.description.replace(
+      /src="data:image\/[^;]+;base64,[^"]+"/gi,
+      'src="" alt="Görsel boyutu nedeniyle gizlendi"'
+    );
+  }
+
+  if (pricedProduct.metadata) {
+    for (const key of Object.keys(pricedProduct.metadata)) {
+      if (typeof pricedProduct.metadata[key] === "string" && (pricedProduct.metadata[key] as string).length > 5000) {
+        pricedProduct.metadata[key] = (pricedProduct.metadata[key] as string).substring(0, 5000) + "... (boyut nedeniyle kırpıldı)";
+      }
+    }
+  }
+
   console.log("[ProductPage Server] searchParams:", searchParams);
   console.log("[ProductPage Server] selectedVariantId:", selectedVariantId);
 
