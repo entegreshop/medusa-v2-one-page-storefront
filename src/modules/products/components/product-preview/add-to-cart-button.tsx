@@ -165,11 +165,12 @@ export default function AddToCartButton({ product, region }: AddToCartButtonProp
 
     setLoading(true)
     try {
-      await addToCart({
+      const error = await addToCart({
         variantId: selectedVariant.id,
         quantity: 1,
         countryCode,
       })
+      if (error) throw new Error(error)
       
       if (displayPrice) {
         trackAddToCart({

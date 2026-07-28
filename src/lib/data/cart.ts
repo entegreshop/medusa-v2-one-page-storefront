@@ -179,7 +179,7 @@ export async function addToCart({
       } catch (e) {
         console.error("Failed to clear corrupted cart", e)
       }
-      medusaError(err)
+      return err.message || "An error occurred"
     })
 }
 

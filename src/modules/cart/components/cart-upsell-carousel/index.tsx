@@ -24,11 +24,12 @@ import { getProductPrice } from "@lib/util/get-product-price"
 
     setAddingToCart(prev => ({ ...prev, [product.id]: true }))
     try {
-      await addToCart({
+      const error = await addToCart({
         variantId: variant.id,
         quantity: 1,
         countryCode: region.countries?.[0]?.iso_2 || "tr"
       })
+      if (error) throw new Error(error)
     } catch (e) {
       console.error("Error adding upsell to cart", e)
     } finally {

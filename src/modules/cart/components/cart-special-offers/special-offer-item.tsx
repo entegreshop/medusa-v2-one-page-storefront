@@ -57,7 +57,7 @@ export default function SpecialOfferItem({ product, offerMeta, region }: Special
   const handleAddToCart = async () => {
     setIsAdding(true)
     try {
-      await addToCart({
+      const error = await addToCart({
         variantId: variant.id,
         quantity: 1,
         countryCode: region.countries?.[0]?.iso_2 || "tr",
@@ -67,6 +67,7 @@ export default function SpecialOfferItem({ product, offerMeta, region }: Special
           special_offer_amount: Number(offerMeta.amount)
         }
       })
+      if (error) throw new Error(error)
       // The cart will auto-refresh if addToCart calls revalidateTag/revalidatePath
     } catch (e) {
       console.error(e)

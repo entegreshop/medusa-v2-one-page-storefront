@@ -370,11 +370,17 @@ export default function ProductActions({
     setIsAdding(true)
 
     try {
-      await addToCart({
+      const error = await addToCart({
         variantId: selectedVariant.id,
         quantity: 1,
         countryCode,
       })
+
+      if (error) {
+        alert("Ürün sepete eklenirken bir hata oluştu. Lütfen sayfayı yenileyip tekrar deneyin.")
+        setIsAdding(false)
+        return
+      }
 
       if (selectedGiftVariantId) {
         const { addGiftToCart } = await import("@lib/data/cart")
@@ -427,11 +433,17 @@ export default function ProductActions({
     setIsBuyingNow(true)
 
     try {
-      await addToCart({
+      const error = await addToCart({
         variantId: selectedVariant.id,
         quantity: 1,
         countryCode,
       })
+
+      if (error) {
+        alert("Hemen al işlemi başlatılamadı. Lütfen sayfayı yenileyip tekrar deneyin.")
+        setIsBuyingNow(false)
+        return
+      }
 
       if (selectedPrice) {
         trackAddToCart({
