@@ -5,7 +5,6 @@ import RelatedProducts from "@modules/products/components/related-products"
 import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-related-products"
 import { notFound } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
-import ProductActionsWrapper from "./product-actions-wrapper"
 import ProductReviews from "@modules/products/components/product-reviews"
 import HediyeUrunler from "@modules/products/components/hediye-urunler"
 
@@ -39,21 +38,11 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
 
         {/* Right Column (40%): Sidebar */}
         <div className="flex flex-col small:sticky small:top-24 w-full small:w-[40%] gap-y-8">
-          <Suspense
-            fallback={
-              <ProductActions
-                disabled={true}
-                product={product}
-                region={region}
-              />
-            }
-          >
-            <ProductActionsWrapper id={product.id} region={region}>
-              <Suspense fallback={null}>
-                <HediyeUrunler product={product} region={region} />
-              </Suspense>
-            </ProductActionsWrapper>
-          </Suspense>
+          <ProductActions product={product} region={region}>
+            <Suspense fallback={null}>
+              <HediyeUrunler product={product} region={region} />
+            </Suspense>
+          </ProductActions>
         </div>
       </div>
 
