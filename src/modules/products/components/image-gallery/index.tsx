@@ -2,7 +2,7 @@
 
 import { HttpTypes } from "@medusajs/types"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useRef } from "react"
 
 type ImageGalleryProps = {
   images: HttpTypes.StoreProductImage[]
@@ -10,10 +10,7 @@ type ImageGalleryProps = {
 
 const ImageGallery = ({ images }: ImageGalleryProps) => {
   const [activeIndex, setActiveIndex] = useState(0)
-
-  // Swipe logic state
-  const [touchStart, setTouchStart] = useState<number | null>(null)
-  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  const carouselRef = useRef<HTMLDivElement>(null)
 
   if (!images || images.length === 0) {
     return (
@@ -23,37 +20,29 @@ const ImageGallery = ({ images }: ImageGalleryProps) => {
     )
   }
 
+  const scrollTo = (index: number) => {
+    setActiveIndex(index)
+    if (carouselRef.current) {
+      const scrollLeft = carouselRef.current.clientWidth * index
+      carouselRef.current.scrollTo({ left: scrollLeft, behavior: "smooth" })
+    }
+  }
+
   const handlePrev = () => {
-    setActiveIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
+    const nextIndex = activeIndex === 0 ? images.length - 1 : activeIndex - 1
+    scrollTo(nextIndex)
   }
 
   const handleNext = () => {
-    setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+    const nextIndex = activeIndex === images.length - 1 ? 0 : activeIndex + 1
+    scrollTo(nextIndex)
   }
 
-  // Swipe handlers
-  const minSwipeDistance = 50
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientX)
-  }
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX)
-  }
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return
-    const distance = touchStart - touchEnd
-    const isLeftSwipe = distance > minSwipeDistance
-    const isRightSwipe = distance < -minSwipeDistance
-
-    if (isLeftSwipe) {
-      handleNext()
-    }
-    if (isRightSwipe) {
-      handlePrev()
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget
+    const index = Math.round(container.scrollLeft / container.clientWidth)
+    if (index !== activeIndex) {
+      setActiveIndex(index)
     }
   }
 
@@ -65,7 +54,7 @@ const ImageGallery = ({ images }: ImageGalleryProps) => {
           {images.map((image, index) => (
             <button
               key={image.id}
-              onClick={() => setActiveIndex(index)}
+              onClick={() => scrollTo(index)}
               className={`relative aspect-[3/4] w-20 medium:w-full overflow-hidden flex-shrink-0 border transition-all ${
                 activeIndex === index
                   ? "border-black shadow-sm"
@@ -96,49 +85,49 @@ const ImageGallery = ({ images }: ImageGalleryProps) => {
       )}
 
       {/* Main Image */}
-      <div 
-        className="relative aspect-[3/4] w-full flex-grow overflow-hidden bg-gray-50 border border-gray-100 group"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
-        {images.map((image, index) => (
-          <div
-            key={image.id}
-            className={`absolute inset-0 w-full h-full transition-opacity duration-300 ease-in-out ${
-              activeIndex === index ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-            }`}
-          >
-            {image.url && (
-              image.url.match(/\.(mp4|webm|mov)$/i) ? (
-                <video
-                  src={image.url}
-                  autoPlay={activeIndex === index}
-                  loop
-                  muted
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              ) : (
-                <Image
-                  alt="Product Image"
-                  src={image.url}
-                  fill
-                  priority={index === 0}
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 800px"
-                />
-              )
-            )}
-          </div>
-        ))}
+      <div className="relative aspect-[3/4] w-full flex-grow overflow-hidden bg-gray-50 border border-gray-100 group">
+        {/* Scrollable Carousel Container */}
+        <div
+          ref={carouselRef}
+          onScroll={handleScroll}
+          className="w-full h-full flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth no-scrollbar"
+        >
+          {images.map((image, index) => (
+            <div
+              key={image.id}
+              className="relative w-full h-full flex-shrink-0 snap-center"
+            >
+              {image.url && (
+                image.url.match(/\.(mp4|webm|mov)$/i) ? (
+                  <video
+                    src={image.url}
+                    autoPlay={activeIndex === index}
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    alt="Product Image"
+                    src={image.url}
+                    fill
+                    priority={index === 0}
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 800px"
+                  />
+                )
+              )}
+            </div>
+          ))}
+        </div>
 
         {/* Navigation Buttons */}
         {images.length > 1 && (
           <>
             <button
               onClick={handlePrev}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/70 hover:bg-white text-black transition-colors rounded-full shadow-sm z-20"
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/70 hover:bg-white text-black transition-colors rounded-full shadow-sm z-20 opacity-0 group-hover:opacity-100 medium:opacity-100"
               aria-label="Önceki Görsel"
             >
               <svg
@@ -156,7 +145,7 @@ const ImageGallery = ({ images }: ImageGalleryProps) => {
             </button>
             <button
               onClick={handleNext}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/70 hover:bg-white text-black transition-colors rounded-full shadow-sm z-20"
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/70 hover:bg-white text-black transition-colors rounded-full shadow-sm z-20 opacity-0 group-hover:opacity-100 medium:opacity-100"
               aria-label="Sonraki Görsel"
             >
               <svg
