@@ -36,6 +36,18 @@ export default function CategoryTemplate({
 
   getParents(category)
 
+  // Ana kategoriye tıklanınca alt kategorilerdeki ürünlerin de gelmesi için tüm ID'leri topla
+  const categoryIds: string[] = [category.id]
+  const getChildrenIds = (cat: HttpTypes.StoreProductCategory) => {
+    if (cat.category_children && cat.category_children.length > 0) {
+      cat.category_children.forEach((child) => {
+        categoryIds.push(child.id)
+        getChildrenIds(child)
+      })
+    }
+  }
+  getChildrenIds(category)
+
   return (
     <div
       className="flex flex-col small:flex-row small:items-start py-6 content-container"
@@ -87,7 +99,7 @@ export default function CategoryTemplate({
           <PaginatedProducts
             sortBy={sort}
             page={pageNumber}
-            categoryId={category.id}
+            categoryId={categoryIds}
             countryCode={countryCode}
           />
         </Suspense>
