@@ -63,7 +63,7 @@ export const listProducts = async ({
           offset,
           region_id: region?.id,
           fields:
-            "*variants.calculated_price,+variants.inventory_quantity,*variants.images,+metadata,+tags,*categories",
+            "*variants.calculated_price,+variants.inventory_quantity,+metadata,+tags,*categories",
           ...queryParams,
         },
         headers,
@@ -86,11 +86,10 @@ export const listProducts = async ({
 }
 
 /**
- * This will fetch 100 products to the Next.js cache and sort them based on the sortBy parameter.
- * It will then return the paginated products based on the page and limit parameters.
+ * Paginates products directly via backend offset/limit for fast response times.
  */
 export const listProductsWithSort = async ({
-  page = 0,
+  page = 1,
   queryParams,
   sortBy = "created_at",
   countryCode,
@@ -105,29 +104,51 @@ export const listProductsWithSort = async ({
   queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams
 }> => {
   const limit = queryParams?.limit || 12
+  const currentPage = Math.max(page, 1)
+
+  if (sortBy === "price_asc" || sortBy === "price_desc") {
+    const {
+      response: { products, count },
+    } = await listProducts({
+      pageParam: 1,
+      queryParams: {
+        ...queryParams,
+        limit: 100,
+      },
+      countryCode,
+    })
+
+    const sortedProducts = sortProducts(products, sortBy)
+    const offset = (currentPage - 1) * limit
+    const nextPage = count > offset + limit ? currentPage + 1 : null
+    const paginatedProducts = sortedProducts.slice(offset, offset + limit)
+
+    return {
+      response: {
+        products: paginatedProducts,
+        count,
+      },
+      nextPage,
+      queryParams,
+    }
+  }
 
   const {
     response: { products, count },
+    nextPage,
   } = await listProducts({
-    pageParam: 0,
+    pageParam: currentPage,
     queryParams: {
       ...queryParams,
-      limit: 100,
+      limit,
+      order: "-created_at",
     },
     countryCode,
   })
 
-  const sortedProducts = sortProducts(products, sortBy)
-
-  const pageParam = (page - 1) * limit
-
-  const nextPage = count > pageParam + limit ? pageParam + limit : null
-
-  const paginatedProducts = sortedProducts.slice(pageParam, pageParam + limit)
-
   return {
     response: {
-      products: paginatedProducts,
+      products,
       count,
     },
     nextPage,
