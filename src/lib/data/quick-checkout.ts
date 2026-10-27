@@ -230,15 +230,15 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
         
         let providerIdsToTry: string[] = [];
         if (data.payment_method === "credit_card") {
-            providerIdsToTry = ["pp_PAYTR_PAYTR", "pp_custom-payment_paytr", "pp_custom-payment_PAYTR", "pp_PAYTR", "PAYTR", "pp_paytr", "paytr"];
+            providerIdsToTry = ["pp_custom-payment_paytr", "pp_custom-payment_PAYTR", "pp_PAYTR", "PAYTR", "pp_paytr", "paytr"];
         } else if (data.payment_method === "havale") {
-            providerIdsToTry = ["pp_BANK-TRANSFER_BANK-TRANSFER", "pp_custom-payment_bank-transfer", "pp_custom-payment_BANK-TRANSFER", "pp_BANK-TRANSFER", "BANK-TRANSFER", "pp_bank_transfer", "bank_transfer"];
+            providerIdsToTry = ["pp_custom-payment_bank-transfer", "pp_custom-payment_BANK-TRANSFER", "pp_BANK-TRANSFER", "BANK-TRANSFER", "pp_bank_transfer", "bank_transfer"];
         } else if (data.payment_method === "cash_on_delivery" || data.payment_method === "cod_cc") {
             // Eger cod_cc secildiyse, oncelikli olarak card-on-delivery'yi dene.
             if (data.payment_method === "cod_cc") {
-               providerIdsToTry = ["pp_CARD-ON-DELIVERY_CARD-ON-DELIVERY", "pp_custom-payment_card-on-delivery", "pp_custom-payment_CARD-ON-DELIVERY", "pp_CARD-ON-DELIVERY", "CARD-ON-DELIVERY", "pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"];
+               providerIdsToTry = ["pp_custom-payment_card-on-delivery", "pp_custom-payment_CARD-ON-DELIVERY", "pp_CARD-ON-DELIVERY", "CARD-ON-DELIVERY", "pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"];
             } else {
-               providerIdsToTry = ["pp_CASH-ON-DELIVERY_CASH-ON-DELIVERY", "pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"];
+               providerIdsToTry = ["pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"];
             }
         } else {
             providerIdsToTry = ["pp_system_default"];
@@ -261,12 +261,12 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
         }
 
         if (!sessionInitiated) {
-            throw new Error(`Kabul edilen ödeme altyapısı bulunamadı. Lütfen mağaza yöneticisi ile iletişime geçin. Hata: ${lastError?.message || "Bilinmiyor"}`);
+            throw new Error(`Kabul edilen ödeme altyapısı bulunamadı. Lütfen mağaza yöneticisiyle iletişime geçin. (Hata: ${lastError?.message || "Bilinmiyor"})`);
         }
-      } catch (e: any) {
-          logToFile("Payment session hatasi 1: " + e.message);
-          throw e; // Rethrow directly without wrapping again to avoid double prefix
-      }
+    } catch(e: any) {
+        logToFile("Payment session genel hatasi: " + e.message);
+        throw new Error(`Ödeme başlatılamadı: ${e.message}`);
+    }
 
     // 5. Siparisi Tamamla
     logToFile("5. Siparis isleniyor, payment method: " + data.payment_method);
@@ -295,9 +295,22 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
             const directApiData = await directApiRes.json();
             logToFile("directApiData: " + JSON.stringify({ ...directApiData, html: directApiData.html ? "HTML_PRESENT" : undefined }));
             
-            if (directApiData.success && directApiData.html) {
-                logToFile("Returning requiresDirectHtml");
-                return { success: true, cartId: targetCartId, requiresDirectHtml: true, html: directApiData.html };
+            if (directApiData.success) {
+                if (directApiData.requiresClientPost && directApiData.formParams) {
+                    logToFile("Returning requiresClientPost");
+                    return { 
+                        success: true, 
+                        cartId: targetCartId, 
+                        requiresClientPost: true, 
+                        postUrl: directApiData.postUrl, 
+                        formParams: directApiData.formParams 
+                    };
+                } else if (directApiData.html) {
+                    logToFile("Returning requiresDirectHtml");
+                    return { success: true, cartId: targetCartId, requiresDirectHtml: true, html: directApiData.html };
+                } else {
+                    throw new Error("PayTR'dan beklenen HTML veya yönlendirme parametreleri alınamadı.");
+                }
             } else {
                 throw new Error(directApiData.error || "Banka ile iletişim kurulamadı. Lütfen bilgilerinizi kontrol edin.");
             }

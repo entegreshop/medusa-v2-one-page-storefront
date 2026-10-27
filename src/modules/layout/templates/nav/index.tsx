@@ -10,9 +10,8 @@ import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
 import SearchModal from "@modules/layout/components/search-modal"
 import TopAnnouncementCarousel from "@modules/layout/components/top-announcement-carousel"
-import { getLogoConfig } from "@lib/data/logo-config"
 
-const NEXT_PUBLIC_MEDUSA_BACKEND_URL = process.env.MEDUSA_BACKEND_URL || "https://api.cizgibutik.com"
+const NEXT_PUBLIC_MEDUSA_BACKEND_URL = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"
 const NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
 
 async function getHeroConfig() {
@@ -22,7 +21,7 @@ async function getHeroConfig() {
       headers["x-publishable-api-key"] = NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
     }
     const res = await fetch(`${NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/hero-config`, {
-      next: { revalidate: 60 },
+      cache: "no-store",
       headers,
     })
     const data = await res.json()
@@ -34,13 +33,12 @@ async function getHeroConfig() {
 }
 
 export default async function Nav() {
-  const [regions, locales, currentLocale, categories, config, logoConfig] = await Promise.all([
+  const [regions, locales, currentLocale, categories, config] = await Promise.all([
     listRegions().then((regions: StoreRegion[]) => regions),
     listLocales(),
     getLocale(),
     listCategories().catch(() => []),
     getHeroConfig(),
-    getLogoConfig(),
   ])
 
   const topAnnouncementPhrases = config?.top_announcement
@@ -60,40 +58,21 @@ export default async function Nav() {
         <nav className="content-container txt-xsmall-plus text-zinc-600 flex items-center justify-between w-full h-full text-small-regular">
           <div className="flex-1 basis-0 h-full flex items-center">
             <div className="h-full">
-              <SideMenu regions={regions} locales={locales} currentLocale={currentLocale} categories={categories} logoConfig={logoConfig} />
+              <SideMenu regions={regions} locales={locales} currentLocale={currentLocale} categories={categories} />
             </div>
           </div>
 
           <div className="flex items-center h-full">
             <LocalizedClientLink
               href="/"
-              className="flex items-center gap-1.5 transition-colors"
+              className="flex items-center transition-opacity hover:opacity-85"
               data-testid="nav-store-link"
             >
-              {logoConfig?.logo || logoConfig?.mobileLogo ? (
-                <>
-                  {logoConfig.mobileLogo ? (
-                    <img 
-                      src={logoConfig.mobileLogo} 
-                      alt="Store Logo" 
-                      className={`h-8 w-auto object-contain ${logoConfig.logo ? 'block md:hidden' : ''}`} 
-                    />
-                  ) : null}
-                  {logoConfig.logo ? (
-                    <img 
-                      src={logoConfig.logo} 
-                      alt="Store Logo" 
-                      className={`h-10 w-auto object-contain ${logoConfig.mobileLogo ? 'hidden md:block' : ''}`} 
-                    />
-                  ) : null}
-                </>
-              ) : (
-                <div className="txt-compact-xlarge-plus text-zinc-950 hover:text-violet-600 font-bold uppercase tracking-widest flex items-center gap-1.5">
-                  <span>XOOX</span>
-                  <span className="w-2 h-2 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.5)] inline-block"></span>
-                  <span className="text-zinc-400 font-normal text-xs tracking-normal lowercase hidden small:inline">store</span>
-                </div>
-              )}
+              <img
+                src="/cizgi-logo.png"
+                alt="Çizgi Butik"
+                className="h-8 md:h-9 w-auto object-contain"
+              />
             </LocalizedClientLink>
           </div>
 
@@ -154,4 +133,3 @@ export default async function Nav() {
     </div>
   )
 }
-

@@ -29,7 +29,6 @@ type SideMenuProps = {
   locales: Locale[] | null
   currentLocale: string | null
   categories?: any[] | null
-  logoConfig?: any | null
 }
 
 const ChevronDown = ({ className }: { className?: string }) => (
@@ -84,7 +83,7 @@ const DocumentIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-const SideMenu = ({ regions, locales, currentLocale, categories, logoConfig }: SideMenuProps) => {
+const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps) => {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({})
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
@@ -143,32 +142,12 @@ const SideMenu = ({ regions, locales, currentLocale, categories, logoConfig }: S
                 leaveFrom="translate-x-0"
                 leaveTo="-translate-x-full"
               >
-                <PopoverPanel className="flex flex-col fixed inset-y-0 left-0 w-full sm:w-[400px] h-[100dvh] z-[100] bg-white overflow-hidden shadow-2xl">
+                <PopoverPanel className="flex flex-col fixed inset-0 w-full h-[100dvh] z-[100] bg-white overflow-hidden">
                   <div className="flex flex-col h-full bg-white relative">
                     {/* Header: Logo and Close Button */}
                     <div className="flex items-center justify-between p-4 pb-2">
-                       {/* Left space for alignment or site logo */}
-                       <div className="flex-1 flex items-center">
-                         {logoConfig?.logo || logoConfig?.mobileLogo ? (
-                           <>
-                             {logoConfig.mobileLogo ? (
-                               <img 
-                                 src={logoConfig.mobileLogo} 
-                                 alt="Store Logo" 
-                                 className={`h-7 w-auto object-contain ${logoConfig.logo ? 'block md:hidden' : ''}`} 
-                               />
-                             ) : null}
-                             {logoConfig.logo ? (
-                               <img 
-                                 src={logoConfig.logo} 
-                                 alt="Store Logo" 
-                                 className={`h-8 w-auto object-contain ${logoConfig.mobileLogo ? 'hidden md:block' : ''}`} 
-                               />
-                             ) : null}
-                           </>
-                         ) : (
-                           <span className="font-bold text-2xl tracking-widest uppercase text-black">XOOX</span>
-                         )}
+                       <div className="flex-1">
+                         <img src="/cizgi-logo.png" alt="Çizgi Butik" className="h-7 w-auto object-contain" />
                        </div>
                        
                        <div className="flex items-center gap-4">

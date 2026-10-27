@@ -26,12 +26,14 @@ export default function CheckoutLayout({
           </LocalizedClientLink>
           <LocalizedClientLink
             href="/"
-            className="txt-compact-xlarge-plus text-zinc-950 hover:text-violet-600 font-bold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+            className="flex items-center justify-center transition-opacity hover:opacity-85"
             data-testid="store-link"
           >
-            <span>XOOX</span>
-            <span className="w-2 h-2 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.5)] inline-block"></span>
-            <span className="text-zinc-400 font-normal text-xs tracking-normal lowercase hidden small:inline">store</span>
+            <img
+              src="/cizgi-logo.png"
+              alt="Çizgi Butik"
+              className="h-8 md:h-9 w-auto object-contain"
+            />
           </LocalizedClientLink>
           <div className="flex-1 basis-0" />
         </nav>

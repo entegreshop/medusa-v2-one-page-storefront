@@ -70,7 +70,6 @@ export default function QuickCheckoutModal({
   const ARAS_BASE64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iNDAiPjx0ZXh0IHg9IjEwIiB5PSIyNSIgZmlsbD0iIzEzMkI1QiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjIyIiBmb250LXdlaWdodD0iYm9sZCI+QVJBUzwvdGV4dD48L3N2Zz4=";
   const [arasLogoUrl, setArasLogoUrl] = useState(ARAS_BASE64);
   const [storeLogoUrl, setStoreLogoUrl] = useState("/logo.png");
-  const [footerCopyrightText, setFooterCopyrightText] = useState("");
 
   // Popup açma fonksiyonu
   const openPopup = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
@@ -127,7 +126,7 @@ export default function QuickCheckoutModal({
     
     // Dynamic Shipping & COD Fetch
     if (isOpen) {
-       const MEDUSA_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "https://api.cizgibutik.com";
+       const MEDUSA_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
        const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
        
        const fetchOptions = {
@@ -146,21 +145,18 @@ export default function QuickCheckoutModal({
              }
           }).catch(err => console.error("COD bilgieri çekilemedi", err))
 
-       fetch(`${MEDUSA_URL}/store/logo-config`, fetchOptions)
-          .then(res => res.json())
-          .then(data => {
-              if (data?.config) {
-                 setStoreLogoUrl(data.config.checkoutLogo || data.config.logo || "/logo.png");
-                 if (data.config.footerCopyrightText) {
-                    setFooterCopyrightText(data.config.footerCopyrightText);
-                 }
-              }
-          }).catch(err => console.error("Logo config çekilemedi", err))
-
        fetch(`${MEDUSA_URL}/store/custom/settings`, fetchOptions)
           .then(res => res.json())
           .then(data => {
               if (data?.settings) {
+                  if (data.settings.admin_logos?.main) {
+                      let mainLogo = data.settings.admin_logos.main;
+                      if (mainLogo.includes("localhost:9000")) {
+                          mainLogo = mainLogo.replace(/http:\/\/localhost:9000/g, MEDUSA_URL);
+                      }
+                      setStoreLogoUrl(mainLogo);
+                  }
+                  
                   setPaymentSettings({
                      bank_active: data.settings.payment_bank?.active !== false, // default true if undefined
                      paytr_active: data.settings.payment_paytr?.active !== false,
@@ -260,7 +256,27 @@ export default function QuickCheckoutModal({
         })
 
         if (result.success) {
-           if (result.requiresDirectHtml && result.html) {
+           if (result.requiresClientPost && result.formParams && result.postUrl) {
+               // Render loading state while submitting
+               setDirectPaytrHtml('<div style="display:flex;align-items:center;justify-center:center;height:100%;">Bankaya yönlendiriliyorsunuz...</div>');
+               
+               // Create dynamic form and submit to PayTR
+               const form = document.createElement("form");
+               form.method = "POST";
+               form.action = result.postUrl;
+               form.style.display = "none";
+               
+               Object.entries(result.formParams).forEach(([key, value]) => {
+                   const input = document.createElement("input");
+                   input.type = "hidden";
+                   input.name = key;
+                   input.value = String(value);
+                   form.appendChild(input);
+               });
+               
+               document.body.appendChild(form);
+               form.submit();
+           } else if (result.requiresDirectHtml && result.html) {
                // Render the 3D secure HTML form
                setDirectPaytrHtml(result.html);
                
@@ -691,7 +707,7 @@ export default function QuickCheckoutModal({
             <div className="pt-10 pb-8 flex flex-col items-center justify-center space-y-4">
                <div className="text-center space-y-1">
                   <p className="text-[12.5px] text-[#8c8c8c] font-medium tracking-wide">Tüm bilgileriniz 256bit SSL Sertifikası ile korunmaktadır.</p>
-                  <p className="text-[12.5px] text-[#8c8c8c] font-medium tracking-wide">{footerCopyrightText || `© ${new Date().getFullYear()} Kombingo.com Tüm Hakları Saklıdır`}</p>
+                  <p className="text-[12.5px] text-[#8c8c8c] font-medium tracking-wide">© {new Date().getFullYear()} Kombingo.com Tüm Hakları Saklıdır</p>
                </div>
                <div className="flex items-center gap-x-3 mt-4 w-full justify-center">
                   <div className="w-[50px] h-[32px] border border-gray-200 rounded flex items-center justify-center bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] px-1.5">

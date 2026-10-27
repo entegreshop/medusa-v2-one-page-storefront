@@ -70,6 +70,13 @@ interface ShippingConfig {
   freeShippingEnabled: boolean
   freeShippingThreshold: number
   freeShippingCurrency: string
+  carriers?: Array<{
+    id: string
+    general: {
+      name: string
+      active: boolean
+    }
+  }>
 }
 
 type SinglePageCheckoutProps = {
@@ -169,9 +176,11 @@ export default function SinglePageCheckout({
 
   // Fetch payment settings from backend
   useEffect(() => {
-    sdk.client.fetch<{ config: PaymentConfig }>("/store/payment-settings")
+    const ts = new Date().getTime()
+    sdk.client.fetch<{ config: PaymentConfig }>(`/store/payment-settings?t=${ts}`)
       .then((res) => {
         if (res && res.config) {
+          console.log("Loaded payment settings:", res.config)
           setPaymentSettings(res.config)
         }
       })
@@ -197,7 +206,8 @@ export default function SinglePageCheckout({
 
   // Fetch shipping settings from backend
   useEffect(() => {
-    sdk.client.fetch<{ config: ShippingConfig }>("/store/shipping-settings")
+    const ts = new Date().getTime()
+    sdk.client.fetch<{ config: ShippingConfig }>(`/store/shipping-settings?t=${ts}`)
       .then((res) => {
         if (res && res.config) {
           setShippingSettings(res.config)
@@ -215,23 +225,27 @@ export default function SinglePageCheckout({
     const subtotalVal = (cart.subtotal ?? 0) / 100
     const availableMethods: Array<"paytr" | "cash_on_delivery" | "card_on_delivery" | "bank_transfer"> = []
 
+    const parseMin = (val: any) => val ? Number(val) : 0
+    const parseMax = (val: any) => val ? Number(val) : 1000000
+    const isActive = (val: any) => val === true || String(val) === "true"
+
     const paytr = paymentSettings.paytr
-    if (paytr?.active && subtotalVal >= (paytr.min_total ?? 0) && subtotalVal <= (paytr.max_total ?? 1000000)) {
+    if (isActive(paytr?.active) && subtotalVal >= parseMin(paytr?.min_total) && subtotalVal <= parseMax(paytr?.max_total)) {
       availableMethods.push("paytr")
     }
 
     const bt = paymentSettings.bank_transfer
-    if (bt?.active && subtotalVal >= (bt.min_total ?? 0) && subtotalVal <= (bt.max_total ?? 1000000)) {
+    if (isActive(bt?.active) && subtotalVal >= parseMin(bt?.min_total) && subtotalVal <= parseMax(bt?.max_total)) {
       availableMethods.push("bank_transfer")
     }
 
     const cc = paymentSettings.card_on_delivery
-    if (cc?.active && subtotalVal >= (cc.min_total ?? 0) && subtotalVal <= (cc.max_total ?? 1000000)) {
+    if (isActive(cc?.active) && subtotalVal >= parseMin(cc?.min_total) && subtotalVal <= parseMax(cc?.max_total)) {
       availableMethods.push("card_on_delivery")
     }
 
     const cod = paymentSettings.cash_on_delivery
-    if (cod?.active && subtotalVal >= (cod.min_total ?? 0) && subtotalVal <= (cod.max_total ?? 1000000)) {
+    if (isActive(cod?.active) && subtotalVal >= parseMin(cod?.min_total) && subtotalVal <= parseMax(cod?.max_total)) {
       availableMethods.push("cash_on_delivery")
     }
 
@@ -405,11 +419,15 @@ export default function SinglePageCheckout({
     const cod = paymentSettings.cash_on_delivery
     const cc = paymentSettings.card_on_delivery
 
+    const parseMin = (val: any) => val ? Number(val) : 0
+    const parseMax = (val: any) => val ? Number(val) : 1000000
+    const isActive = (val: any) => val === true || String(val) === "true"
+
     return {
-      isPaytrAvailable: paytr?.active && subtotalAmount >= (paytr.min_total ?? 0) && subtotalAmount <= (paytr.max_total ?? 1000000),
-      isBankTransferAvailable: bt?.active && subtotalAmount >= (bt.min_total ?? 0) && subtotalAmount <= (bt.max_total ?? 1000000),
-      isCashOnDeliveryAvailable: cod?.active && subtotalAmount >= (cod.min_total ?? 0) && subtotalAmount <= (cod.max_total ?? 1000000),
-      isCardOnDeliveryAvailable: cc?.active && subtotalAmount >= (cc.min_total ?? 0) && subtotalAmount <= (cc.max_total ?? 1000000)
+      isPaytrAvailable: isActive(paytr?.active) && subtotalAmount >= parseMin(paytr?.min_total) && subtotalAmount <= parseMax(paytr?.max_total),
+      isBankTransferAvailable: isActive(bt?.active) && subtotalAmount >= parseMin(bt?.min_total) && subtotalAmount <= parseMax(bt?.max_total),
+      isCashOnDeliveryAvailable: isActive(cod?.active) && subtotalAmount >= parseMin(cod?.min_total) && subtotalAmount <= parseMax(cod?.max_total),
+      isCardOnDeliveryAvailable: isActive(cc?.active) && subtotalAmount >= parseMin(cc?.min_total) && subtotalAmount <= parseMax(cc?.max_total)
     }
   }, [paymentSettings, subtotalAmount])
 
@@ -565,40 +583,66 @@ export default function SinglePageCheckout({
       }
 
       // 3. Initiate payment session
-      let providerIdsToTry: string[] = []
-      if (paymentMethod === "paytr") providerIdsToTry = ["pp_PAYTR_PAYTR", "pp_custom-payment_paytr", "pp_custom-payment_PAYTR", "pp_PAYTR", "PAYTR", "pp_paytr", "paytr"]
-      else if (paymentMethod === "bank_transfer") providerIdsToTry = ["pp_BANK-TRANSFER_BANK-TRANSFER", "pp_custom-payment_bank-transfer", "pp_custom-payment_BANK-TRANSFER", "pp_BANK-TRANSFER", "BANK-TRANSFER", "pp_bank_transfer", "bank_transfer"]
-      else if (paymentMethod === "cash_on_delivery") providerIdsToTry = ["pp_CASH-ON-DELIVERY_CASH-ON-DELIVERY", "pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"]
-      else if (paymentMethod === "card_on_delivery") providerIdsToTry = ["pp_CARD-ON-DELIVERY_CARD-ON-DELIVERY", "pp_custom-payment_card-on-delivery", "pp_custom-payment_CARD-ON-DELIVERY", "pp_CARD-ON-DELIVERY", "CARD-ON-DELIVERY", "pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"]
-      else providerIdsToTry = ["pp_system_default"]
+      let providerId = "pp_system_default"
+      if (paymentMethod === "paytr") providerId = "pp_custom-payment_PAYTR"
+      else if (paymentMethod === "bank_transfer") providerId = "pp_custom-payment_BANK-TRANSFER"
+      else if (paymentMethod === "cash_on_delivery") providerId = "pp_custom-payment_CASH-ON-DELIVERY"
+      else if (paymentMethod === "card_on_delivery") providerId = "pp_custom-payment_CARD-ON-DELIVERY"
 
-      let sessionInitiated = false;
-      let lastError = null;
+      await initiatePaymentSession(updatedCart || cart, {
+        provider_id: providerId
+      }).catch((e) => {
+        console.warn("initiatePaymentSession fallback notice:", e?.message)
+      })
 
-      for (const pId of providerIdsToTry) {
-        try {
-          await initiatePaymentSession(updatedCart || cart, {
-            provider_id: pId
+      // 4. If PayTR is selected, invoke PayTR Direct API and redirect via client POST to 3D Secure
+      if (paymentMethod === "paytr") {
+        const MEDUSA_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "https://api.cizgibutik.com"
+        const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || ""
+        const directRes = await fetch(`${MEDUSA_URL}/store/custom/paytr/direct`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-publishable-api-key": PUBLISHABLE_KEY
+          },
+          body: JSON.stringify({
+            cart_id: cart.id,
+            cc_owner: cardName,
+            cc_number: cardNumber.replace(/\s/g, ""),
+            cc_month: cardMonth,
+            cc_year: cardYear.slice(-2),
+            cc_cvv: cardCvv
           })
-          sessionInitiated = true;
-          break;
-        } catch (e: any) {
-          lastError = e;
+        })
+        const directData = await directRes.json()
+        if (directData?.success && directData.requiresClientPost && directData.formParams && directData.postUrl) {
+          const form = document.createElement("form")
+          form.method = "POST"
+          form.action = directData.postUrl
+          form.style.display = "none"
+          Object.entries(directData.formParams).forEach(([key, value]) => {
+            const input = document.createElement("input")
+            input.type = "hidden"
+            input.name = key
+            input.value = String(value)
+            form.appendChild(input)
+          })
+          document.body.appendChild(form)
+          form.submit()
+          return
+        } else {
+          throw new Error(directData?.error || "Banka ile iletişim kurulamadı. Lütfen kart bilgilerinizi kontrol edin.")
         }
       }
 
-      if (!sessionInitiated) {
-        throw new Error(`Kabul edilen ödeme altyapısı bulunamadı (Ana Hata): ${lastError?.message || 'Bilinmiyor'}`);
-      }
-
-      // 4. Place order
+      // 5. Place order for non-PayTR methods
       await placeOrder(cart.id)
 
     } catch (err: any) {
       if (err?.message === "NEXT_REDIRECT" || err?.digest?.startsWith("NEXT_REDIRECT")) {
         throw err;
       }
-      setErrorMessage(err.message || "Sipariş tamamlanırken bir hata oluştu.")
+      setErrorMessage(err.message || "Siparişi tamamlanırken bir hata oluştu.")
       setIsSubmitting(false)
     }
   }
@@ -887,7 +931,51 @@ export default function SinglePageCheckout({
               <h2 className="text-xl font-bold text-zinc-900 mb-4">Kargo Yöntemi</h2>
               
               <div className="grid grid-cols-1 gap-2">
-                {shippingMethods && shippingMethods.map((sm) => {
+                {shippingSettings?.carriers?.filter(c => c.general?.active).length ? (
+                  shippingSettings.carriers.filter(c => c.general?.active).map((carrier) => {
+                    const sm = shippingMethods?.[0]
+                    const isSelected = shippingMethodId === carrier.id
+                    
+                    const basePrice = sm?.amount ? (sm.amount / 100) : 0
+                    const optionPrice = shippingSettings?.standardShippingEnabled 
+                      ? shippingSettings.standardShippingFee
+                      : basePrice
+                      
+                    const displayPrice = isFreeShipping ? 0 : optionPrice
+                    
+                    return (
+                      <div
+                        key={carrier.id}
+                        onClick={() => {
+                          if (sm) {
+                            handleSetShippingMethod(sm.id)
+                          }
+                          setShippingMethodId(carrier.id)
+                        }}
+                        className={`flex flex-col p-4 border cursor-pointer select-none transition-colors ${
+                          isSelected ? "border-black bg-zinc-50" : "border-gray-200 bg-white hover:border-black"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-x-3">
+                            <input
+                              type="radio"
+                              checked={isSelected}
+                              onChange={() => {}}
+                              className="w-4 h-4 text-black focus:ring-black accent-black"
+                            />
+                            <span className="text-sm font-semibold text-zinc-900">
+                              {carrier.general.name}
+                            </span>
+                          </div>
+                          <span className="text-sm font-bold text-zinc-900">
+                            {displayPrice === 0 ? "Ücretsiz" : `₺${displayPrice.toFixed(2)}`}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })
+                ) : shippingMethods && shippingMethods.length > 0 ? shippingMethods.map((sm) => {
                   const isSelected = shippingMethodId === sm.id
                   
                   // Calculate dynamic option price
@@ -924,7 +1012,9 @@ export default function SinglePageCheckout({
                       </div>
                     </div>
                   )
-                })}
+                }) : (
+                  <div className="text-sm text-zinc-500">Kargo seçeneği bulunamadı.</div>
+                )}
               </div>
 
               {/* Free shipping banner */}
