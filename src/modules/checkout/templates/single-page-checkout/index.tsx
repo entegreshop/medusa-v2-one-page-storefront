@@ -603,6 +603,13 @@ export default function SinglePageCheckout({
 
       // 4. If PayTR is selected, invoke PayTR Direct API and redirect via client POST to 3D Secure
       if (paymentMethod === "paytr") {
+        let clientIpv4 = ""
+        try {
+          const ipRes = await fetch("https://api.ipify.org?format=json", { signal: AbortSignal.timeout(2500) })
+          const ipData = await ipRes.json()
+          if (ipData?.ip) clientIpv4 = ipData.ip
+        } catch {}
+
         const MEDUSA_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "https://api.cizgibutik.com"
         const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || ""
         const directRes = await fetch(`${MEDUSA_URL}/store/custom/paytr/direct`, {
@@ -617,7 +624,8 @@ export default function SinglePageCheckout({
             cc_number: cardNumber.replace(/\s/g, ""),
             cc_month: cardMonth,
             cc_year: cardYear.slice(-2),
-            cc_cvv: cardCvv
+            cc_cvv: cardCvv,
+            client_ip: clientIpv4 || undefined
           })
         })
         const directData = await directRes.json()

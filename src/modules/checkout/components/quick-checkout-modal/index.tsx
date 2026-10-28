@@ -246,13 +246,23 @@ export default function QuickCheckoutModal({
     setError("")
 
     try {
+        let clientIpv4 = ""
+        if (formData.payment_method === "credit_card") {
+            try {
+                const ipRes = await fetch("https://api.ipify.org?format=json", { signal: AbortSignal.timeout(2500) })
+                const ipData = await ipRes.json()
+                if (ipData?.ip) clientIpv4 = ipData.ip
+            } catch {}
+        }
+
         // Doğrudan Server Action çağrılır
         const result = await processQuickCheckout({
             ...formData,
             country_code: region.countries?.[0]?.iso_2 || "tr",
             cart_id: cart?.id,
             variant_id: variantId,
-            quantity: quantity
+            quantity: quantity,
+            client_ip: clientIpv4 || undefined
         })
 
         if (result.success) {

@@ -54,6 +54,7 @@ export type QuickCheckoutFormData = {
   cc_month?: string
   cc_year?: string
   cc_cvv?: string
+  client_ip?: string
 }
 
 export async function processQuickCheckout(data: QuickCheckoutFormData) {
@@ -281,16 +282,18 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
         try {
             const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "https://api.cizgibutik.com";
             const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
-            let clientIp = "1.1.1.1";
-            try {
-                const { headers: nextHeaders } = await import("next/headers");
-                const reqHeaders = await nextHeaders();
-                clientIp =
-                    reqHeaders.get("cf-connecting-ip") ||
-                    reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-                    reqHeaders.get("x-real-ip") ||
-                    "1.1.1.1";
-            } catch {}
+            let clientIp = data.client_ip || "1.1.1.1";
+            if (!data.client_ip || data.client_ip === "1.1.1.1") {
+                try {
+                    const { headers: nextHeaders } = await import("next/headers");
+                    const reqHeaders = await nextHeaders();
+                    clientIp =
+                        reqHeaders.get("cf-connecting-ip") ||
+                        reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+                        reqHeaders.get("x-real-ip") ||
+                        "1.1.1.1";
+                } catch {}
+            }
 
             logToFile(`Fetching ${backendUrl}/store/custom/paytr/direct...`);
             const directApiRes = await fetchWithTimeout(`${backendUrl}/store/custom/paytr/direct`, {
