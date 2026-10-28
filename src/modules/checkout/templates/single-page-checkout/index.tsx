@@ -583,17 +583,23 @@ export default function SinglePageCheckout({
       }
 
       // 3. Initiate payment session
-      let providerId = "pp_system_default"
-      if (paymentMethod === "paytr") providerId = "pp_custom-payment_PAYTR"
-      else if (paymentMethod === "bank_transfer") providerId = "pp_custom-payment_BANK-TRANSFER"
-      else if (paymentMethod === "cash_on_delivery") providerId = "pp_custom-payment_CASH-ON-DELIVERY"
-      else if (paymentMethod === "card_on_delivery") providerId = "pp_custom-payment_CARD-ON-DELIVERY"
+      let providerIdsToTry: string[] = []
+      if (paymentMethod === "paytr") providerIdsToTry = ["pp_PAYTR_PAYTR", "pp_custom-payment_paytr", "pp_custom-payment_PAYTR", "pp_PAYTR", "PAYTR", "pp_paytr", "paytr"]
+      else if (paymentMethod === "bank_transfer") providerIdsToTry = ["pp_BANK-TRANSFER_BANK-TRANSFER", "pp_custom-payment_bank-transfer", "pp_custom-payment_BANK-TRANSFER", "pp_BANK-TRANSFER", "BANK-TRANSFER", "pp_bank_transfer", "bank_transfer"]
+      else if (paymentMethod === "cash_on_delivery") providerIdsToTry = ["pp_CASH-ON-DELIVERY_CASH-ON-DELIVERY", "pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"]
+      else if (paymentMethod === "card_on_delivery") providerIdsToTry = ["pp_CARD-ON-DELIVERY_CARD-ON-DELIVERY", "pp_custom-payment_card-on-delivery", "pp_custom-payment_CARD-ON-DELIVERY", "pp_CARD-ON-DELIVERY", "CARD-ON-DELIVERY", "pp_CASH-ON-DELIVERY_CASH-ON-DELIVERY", "pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"]
+      else providerIdsToTry = ["pp_system_default"]
 
-      await initiatePaymentSession(updatedCart || cart, {
-        provider_id: providerId
-      }).catch((e) => {
-        console.warn("initiatePaymentSession fallback notice:", e?.message)
-      })
+      for (const pId of providerIdsToTry) {
+        try {
+          await initiatePaymentSession(updatedCart || cart, {
+            provider_id: pId
+          })
+          break
+        } catch (e: any) {
+          console.warn("initiatePaymentSession fallback notice:", pId, e?.message)
+        }
+      }
 
       // 4. If PayTR is selected, invoke PayTR Direct API and redirect via client POST to 3D Secure
       if (paymentMethod === "paytr") {

@@ -126,7 +126,7 @@ export default function QuickCheckoutModal({
     
     // Dynamic Shipping & COD Fetch
     if (isOpen) {
-       const MEDUSA_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+       const MEDUSA_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "https://api.cizgibutik.com";
        const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
        
        const fetchOptions = {

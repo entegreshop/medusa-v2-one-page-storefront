@@ -197,9 +197,13 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
     try {
         logToFile("Fetching payment-cod/apply...");
         const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "https://api.cizgibutik.com"
+        const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || ""
         await fetchWithTimeout(`${backendUrl}/store/custom/payment-cod/apply`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "x-publishable-api-key": publishableKey
+            },
             body: JSON.stringify({ cart_id: targetCartId, method_id: data.payment_method })
         }, 10000)
         logToFile("payment-cod/apply success");
@@ -230,15 +234,15 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
         
         let providerIdsToTry: string[] = [];
         if (data.payment_method === "credit_card") {
-            providerIdsToTry = ["pp_custom-payment_paytr", "pp_custom-payment_PAYTR", "pp_PAYTR", "PAYTR", "pp_paytr", "paytr"];
+            providerIdsToTry = ["pp_PAYTR_PAYTR", "pp_custom-payment_paytr", "pp_custom-payment_PAYTR", "pp_PAYTR", "PAYTR", "pp_paytr", "paytr"];
         } else if (data.payment_method === "havale") {
-            providerIdsToTry = ["pp_custom-payment_bank-transfer", "pp_custom-payment_BANK-TRANSFER", "pp_BANK-TRANSFER", "BANK-TRANSFER", "pp_bank_transfer", "bank_transfer"];
+            providerIdsToTry = ["pp_BANK-TRANSFER_BANK-TRANSFER", "pp_custom-payment_bank-transfer", "pp_custom-payment_BANK-TRANSFER", "pp_BANK-TRANSFER", "BANK-TRANSFER", "pp_bank_transfer", "bank_transfer"];
         } else if (data.payment_method === "cash_on_delivery" || data.payment_method === "cod_cc") {
             // Eger cod_cc secildiyse, oncelikli olarak card-on-delivery'yi dene.
             if (data.payment_method === "cod_cc") {
-               providerIdsToTry = ["pp_custom-payment_card-on-delivery", "pp_custom-payment_CARD-ON-DELIVERY", "pp_CARD-ON-DELIVERY", "CARD-ON-DELIVERY", "pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"];
+               providerIdsToTry = ["pp_CARD-ON-DELIVERY_CARD-ON-DELIVERY", "pp_custom-payment_card-on-delivery", "pp_custom-payment_CARD-ON-DELIVERY", "pp_CARD-ON-DELIVERY", "CARD-ON-DELIVERY", "pp_CASH-ON-DELIVERY_CASH-ON-DELIVERY", "pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"];
             } else {
-               providerIdsToTry = ["pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"];
+               providerIdsToTry = ["pp_CASH-ON-DELIVERY_CASH-ON-DELIVERY", "pp_custom-payment_cash-on-delivery", "pp_custom-payment_CASH-ON-DELIVERY", "pp_CASH-ON-DELIVERY", "CASH-ON-DELIVERY", "pp_cod_cash", "cod_cash"];
             }
         } else {
             providerIdsToTry = ["pp_system_default"];
@@ -276,10 +280,25 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
         
         try {
             const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "https://api.cizgibutik.com";
+            const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
+            let clientIp = "1.1.1.1";
+            try {
+                const { headers: nextHeaders } = await import("next/headers");
+                const reqHeaders = await nextHeaders();
+                clientIp =
+                    reqHeaders.get("cf-connecting-ip") ||
+                    reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+                    reqHeaders.get("x-real-ip") ||
+                    "1.1.1.1";
+            } catch {}
+
             logToFile(`Fetching ${backendUrl}/store/custom/paytr/direct...`);
             const directApiRes = await fetchWithTimeout(`${backendUrl}/store/custom/paytr/direct`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-publishable-api-key': publishableKey
+                },
                 body: JSON.stringify({ 
                     cart_id: targetCartId,
                     cc_owner: data.cc_owner,
@@ -287,7 +306,7 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
                     cc_month: data.cc_month,
                     cc_year: data.cc_year,
                     cc_cvv: data.cc_cvv,
-                    client_ip: headers['x-forwarded-for'] || '1.1.1.1' // Provide IP if possible
+                    client_ip: clientIp
                 })
             }, 20000);
             logToFile(`directApiRes status: ${directApiRes.status}`);
