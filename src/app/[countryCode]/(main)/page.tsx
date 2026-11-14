@@ -4,8 +4,7 @@ import Hero from "@modules/home/components/hero"
 import PromoBanners from "@modules/home/components/promo-banners"
 import TrustBadges from "@modules/home/components/trust-badges"
 import CategoryTabs from "@modules/home/components/category-tabs"
-import ProductPreview from "@modules/products/components/product-preview"
-import InteractiveLink from "@modules/common/components/interactive-link"
+import ProductCarouselBlock, { CarouselBlockConfig } from "@modules/home/components/product-carousel-block"
 import { Text } from "@medusajs/ui"
 import InfiniteProducts from "@modules/store/components/infinite-products"
 import { listCollections } from "@lib/data/collections"
@@ -15,7 +14,7 @@ import { getCategoryByHandle } from "@lib/data/categories"
 import { listProducts } from "@lib/data/products"
 
 export const metadata: Metadata = {
-  description: "A performant international storefront for XOOX Commerce.",
+  description: "Çizgi Butik - Yeni Sezon Kadın Giyim, Jean, Tayt ve Kombin Koleksiyonu",
 }
 
 const NEXT_PUBLIC_MEDUSA_BACKEND_URL = process.env.MEDUSA_BACKEND_URL || "https://api.cizgibutik.com"
@@ -28,7 +27,7 @@ async function getHeroConfig() {
       headers["x-publishable-api-key"] = NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
     }
     const res = await fetch(`${NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/hero-config`, {
-      next: { revalidate: 60 },
+      next: { revalidate: 10 },
       headers,
     })
     const data = await res.json()
@@ -61,14 +60,14 @@ export default async function Home(props: {
   const config = await getHeroConfig()
 
   const marqueeText = config?.scrolling_text_home
-  const repeatedText = marqueeText ? Array(8).fill(marqueeText).join("\u00A0\u00A0\u00A0\u00A0\u00A0•\u00A0\u00A0\u00A0\u00A0\u00A0") + "\u00A0\u00A0\u00A0\u00A0\u00A0•\u00A0\u00A0\u00A0\u00A0\u00A0" : ""
+  const repeatedText = marqueeText
+    ? Array(8).fill(marqueeText).join("\u00A0\u00A0\u00A0\u00A0\u00A0•\u00A0\u00A0\u00A0\u00A0\u00A0") + "\u00A0\u00A0\u00A0\u00A0\u00A0•\u00A0\u00A0\u00A0\u00A0\u00A0"
+    : ""
 
   const categoryQuery = searchParams.category || "yeni-gelenler"
-  
+
   let products: any[] = []
   let count = 0
-  let sectionTitle = "Yeni Gelenler"
-  let viewAllLink = "/store"
   let activeCategoryId: string | undefined = undefined
   let activeCollectionId: string | undefined = undefined
 
@@ -83,13 +82,10 @@ export default async function Home(props: {
     })
     products = res.response.products
     count = res.response.count
-    sectionTitle = "Yeni Gelenler"
-    viewAllLink = `/store`
   } else if (categoryQuery === "cok-satanlar") {
-    const cokSatanlarCollection = collections.find(
-      (c) => c.handle === "çok-satanlar" || c.handle === "cok-satanlar"
-    ) || collections[0]
-    
+    const cokSatanlarCollection =
+      collections.find((c) => c.handle === "çok-satanlar" || c.handle === "cok-satanlar") || collections[0]
+
     if (cokSatanlarCollection) {
       activeCollectionId = cokSatanlarCollection.id
       const res = await listProducts({
@@ -102,8 +98,6 @@ export default async function Home(props: {
       })
       products = res.response.products
       count = res.response.count
-      sectionTitle = cokSatanlarCollection.title
-      viewAllLink = `/collections/${cokSatanlarCollection.handle}`
     }
   } else {
     const categoryObj = await getCategoryByHandle([categoryQuery])
@@ -119,12 +113,68 @@ export default async function Home(props: {
       })
       products = res.response.products
       count = res.response.count
-      sectionTitle = categoryObj.name
-      viewAllLink = `/categories/${categoryObj.handle}`
     }
   }
 
-  const configuredCategories = config?.categories || []
+  // Load products for configured Carousel Blocks
+  const rawCarousels: CarouselBlockConfig[] = Array.isArray(config?.carousel_blocks)
+    ? config.carousel_blocks.filter((b: CarouselBlockConfig) => b && b.active !== false)
+    : []
+
+  const resolvedCarousels = await Promise.all(
+    rawCarousels.map(async (block) => {
+      try {
+        const limit = block.limit || 8
+        if (block.source_type === "category" && block.handle) {
+          const catObj = await getCategoryByHandle([block.handle])
+          if (catObj) {
+            const res = await listProducts({
+              regionId: region.id,
+              queryParams: {
+                category_id: [catObj.id],
+                fields: "*variants.calculated_price",
+                limit,
+              },
+            })
+            return { block, products: res.response.products }
+          }
+        } else if (block.source_type === "collection" && block.handle) {
+          const colObj = collections.find((c) => c.handle === block.handle)
+          if (colObj) {
+            const res = await listProducts({
+              regionId: region.id,
+              queryParams: {
+                collection_id: [colObj.id],
+                fields: "*variants.calculated_price",
+                limit,
+              },
+            })
+            return { block, products: res.response.products }
+          }
+        }
+        // Default: latest products
+        const res = await listProducts({
+          regionId: region.id,
+          queryParams: {
+            fields: "*variants.calculated_price",
+            limit,
+            order: "-created_at",
+          },
+        })
+        return { block, products: res.response.products }
+      } catch (e) {
+        return { block, products: [] }
+      }
+    })
+  )
+
+  const carouselsAboveBanners = resolvedCarousels.filter((c) => c.block.position === "above_banners")
+  const carouselsBelowBanners = resolvedCarousels.filter(
+    (c) => !c.block.position || c.block.position === "below_banners" || c.block.position === "below_categories"
+  )
+  const carouselsBelowProducts = resolvedCarousels.filter((c) => c.block.position === "below_products")
+
+  const configuredCategories = (config?.categories || []).filter((c: any) => c.active !== false)
 
   return (
     <>
@@ -159,17 +209,28 @@ export default async function Home(props: {
           </div>
         </div>
       )}
-      
+
+      {/* Carousel Blocks placed Above Banners */}
+      {carouselsAboveBanners.map((item) => (
+        <ProductCarouselBlock key={item.block.id} block={item.block} products={item.products} region={region} />
+      ))}
+
       {/* 2. Campaign Double Bento Banners */}
-      <PromoBanners />
+      {config?.show_promo_banners !== false && <PromoBanners />}
+
+      {/* Carousel Blocks placed Below Banners */}
+      {carouselsBelowBanners.map((item) => (
+        <ProductCarouselBlock key={item.block.id} block={item.block} products={item.products} region={region} />
+      ))}
 
       {/* 3. Category Tab Bar Carousel */}
-      <CategoryTabs categories={configuredCategories} activeCategory={categoryQuery} />
-      
+      {config?.show_category_circles !== false && (
+        <CategoryTabs categories={configuredCategories} activeCategory={categoryQuery} />
+      )}
+
       {/* 4. Products Grid Section */}
       <div className="bg-white py-12 border-b border-zinc-200">
         <div className="content-container">
-
           {products && products.length > 0 ? (
             <InfiniteProducts
               initialProducts={products}
@@ -183,7 +244,12 @@ export default async function Home(props: {
           ) : (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <svg className="w-12 h-12 text-zinc-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                />
               </svg>
               <Text className="text-zinc-500 font-semibold text-sm">
                 Bu kategoride henüz sergilenecek ürün bulunmuyor.
@@ -192,9 +258,14 @@ export default async function Home(props: {
           )}
         </div>
       </div>
-      
+
+      {/* Carousel Blocks placed Below Products */}
+      {carouselsBelowProducts.map((item) => (
+        <ProductCarouselBlock key={item.block.id} block={item.block} products={item.products} region={region} />
+      ))}
+
       {/* 5. Trust and Security Badges */}
-      <TrustBadges />
+      {config?.show_trust_badges !== false && <TrustBadges badges={config?.trust_badges} />}
     </>
   )
 }
