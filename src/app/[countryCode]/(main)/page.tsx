@@ -192,16 +192,160 @@ export default async function Home(props: {
   // Load products for Banner-Overlaid Category Carousels (n11 Style without top circular brand badges)
   const defaultBannerCarousels: BannerCarouselConfig[] = [
     {
-      id: "banner-carousel-1",
-      title: "Kışlık Kombinler",
+      id: "banner-carousel-kombin",
+      title: "Trend İkili Kombinler",
       title_color: "#111827",
       cta_text: "Fırsatları Kaçırma",
-      cta_link: "/store",
+      cta_link: "/categories/kombin",
       cta_color: "#f02d9c",
       footer_note: "Sezon sonuna kadar geçerlidir. Fırsat; kupon ve sepette indirim avantajlarını kapsar.",
-      badge_text: "YENİ SEZON FIRSATI",
+      badge_text: "KOMBİN FIRSATI",
       bg_image_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&auto=format&fit=crop&q=80",
       bg_color: "#dce6f2",
+      source_type: "category",
+      handle: "kombin",
+      limit: 8,
+      position: "below_collection",
+      free_shipping_text: "HIZLI KARGO",
+      active: true,
+    },
+    {
+      id: "banner-carousel-jean",
+      title: "Jean Pantolon Koleksiyonu",
+      title_color: "#111827",
+      cta_text: "Denim Modellerini Keşfet",
+      cta_link: "/categories/jean-pantolon",
+      cta_color: "#1d4ed8",
+      footer_note: "Yüksek bel, Palazzo, Mom ve İspanyol paça jean modellerinde sepette ekstra kupon fırsatı.",
+      badge_text: "DENİM SEZONU",
+      bg_image_url: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=1600&auto=format&fit=crop&q=80",
+      bg_color: "#dbeafe",
+      source_type: "category",
+      handle: "jean-pantolon",
+      limit: 8,
+      position: "below_collection",
+      free_shipping_text: "HIZLI KARGO",
+      active: true,
+    },
+    {
+      id: "banner-carousel-tayt",
+      title: "Toparlayıcı & Likralı Taytlar",
+      title_color: "#111827",
+      cta_text: "Tayt Fırsatlarını İncele",
+      cta_link: "/categories/tayt",
+      cta_color: "#c91d82",
+      footer_note: "Yüksek bel fitilli, deri görünümlü ve çelik örme taytlarda hızlı kargo avantajı.",
+      badge_text: "FAVORİ TAYTLAR",
+      bg_image_url: "https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=1600&auto=format&fit=crop&q=80",
+      bg_color: "#fce7f3",
+      source_type: "category",
+      handle: "tayt",
+      limit: 8,
+      position: "below_collection",
+      free_shipping_text: "HIZLI KARGO",
+      active: true,
+    },
+    {
+      id: "banner-carousel-sweat",
+      title: "Oversize Sweat & Eşofman",
+      title_color: "#111827",
+      cta_text: "Rahat Stili Yakala",
+      cta_link: "/categories/sweat",
+      cta_color: "#7c3aed",
+      footer_note: "Şardonlu 3 iplik oversize sweatshirt ve kapüşonlu modellerde özel indirimler.",
+      badge_text: "STREET STYLE",
+      bg_image_url: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=1600&auto=format&fit=crop&q=80",
+      bg_color: "#ede9fe",
+      source_type: "category",
+      handle: "sweat",
+      limit: 8,
+      position: "below_collection",
+      free_shipping_text: "HIZLI KARGO",
+      active: true,
+    },
+    {
+      id: "banner-carousel-mont",
+      title: "Mont & Kürk Koleksiyonu",
+      title_color: "#111827",
+      cta_text: "Dış Giyim Fırsatları",
+      cta_link: "/categories/mont",
+      cta_color: "#b45309",
+      footer_note: "Sıcak tutan şişme mont, peluş kürk ve kaşe kabanlarda sezonun en iyi fiyatları.",
+      badge_text: "KIŞ KOLEKSİYONU",
+      bg_image_url: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=1600&auto=format&fit=crop&q=80",
+      bg_color: "#fef3c7",
+      source_type: "category",
+      handle: "mont",
+      limit: 8,
+      position: "below_collection",
+      free_shipping_text: "HIZLI KARGO",
+      active: true,
+    },
+    {
+      id: "banner-carousel-tshirt",
+      title: "Yeni Sezon T-Shirt Seçkisi",
+      title_color: "#111827",
+      cta_text: "Tüm Modelleri Gör",
+      cta_link: "/categories/tshirt",
+      cta_color: "#059669",
+      footer_note: "%100 pamuklu basic, baskılı ve crop t-shirt modellerinde sepette ekstra indirim.",
+      badge_text: "HER MEVSİM STİL",
+      bg_image_url: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=1600&auto=format&fit=crop&q=80",
+      bg_color: "#d1fae5",
+      source_type: "category",
+      handle: "tshirt",
+      limit: 8,
+      position: "below_collection",
+      free_shipping_text: "HIZLI KARGO",
+      active: true,
+    },
+    {
+      id: "banner-carousel-gozluk",
+      title: "Güneş Gözlüğü Koleksiyonu",
+      title_color: "#111827",
+      cta_text: "Aksesuarları Keşfet",
+      cta_link: "/categories/gozluk",
+      cta_color: "#e11d48",
+      footer_note: "UV400 korumalı retro, cat-eye ve kemik çerçeve gözlüklerde kaçırılmayacak fiyatlar.",
+      badge_text: "TREND AKSESUAR",
+      bg_image_url: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=1600&auto=format&fit=crop&q=80",
+      bg_color: "#ffe4e6",
+      source_type: "category",
+      handle: "gozluk",
+      limit: 8,
+      position: "below_collection",
+      free_shipping_text: "HIZLI KARGO",
+      active: true,
+    },
+    {
+      id: "banner-carousel-canta",
+      title: "Şık & Trend Çanta Modelleri",
+      title_color: "#111827",
+      cta_text: "Çanta Koleksiyonunu Gör",
+      cta_link: "/categories/canta",
+      cta_color: "#9333ea",
+      footer_note: "Omuz çantası, baget ve çapraz askılı modellerle kombininizi tamamlayın.",
+      badge_text: "İMZA DETAYLAR",
+      bg_image_url: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1600&auto=format&fit=crop&q=80",
+      bg_color: "#f3e8ff",
+      source_type: "category",
+      handle: "canta",
+      limit: 8,
+      position: "below_collection",
+      free_shipping_text: "HIZLI KARGO",
+      active: true,
+    },
+    {
+      id: "banner-carousel-yeni",
+      title: "Yeni Gelenler Vitrini",
+      title_color: "#111827",
+      cta_text: "Yeni Sezonu Keşfet",
+      cta_link: "/store",
+      cta_color: "#f02d9c",
+      footer_note: "Haftanın en yeni Çizgi Butik tasarımları stoklarla sınırlı özel lansman fiyatlarıyla.",
+      badge_text: "YENİ SEZON",
+      bg_image_url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1600&auto=format&fit=crop&q=80",
+      bg_color: "#fce7f3",
       source_type: "latest",
       handle: "",
       limit: 8,
@@ -209,14 +353,44 @@ export default async function Home(props: {
       free_shipping_text: "HIZLI KARGO",
       active: true,
     },
+    {
+      id: "banner-carousel-coksatan",
+      title: "Çok Satan Favori Ürünler",
+      title_color: "#111827",
+      cta_text: "Popüler Ürünleri İncele",
+      cta_link: "/store",
+      cta_color: "#ea580c",
+      footer_note: "Müşterilerimizin en çok tercih ettiği yıldız parçalar hızlı kargo fırsatıyla.",
+      badge_text: "BEST SELLER 🔥",
+      bg_image_url: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=1600&auto=format&fit=crop&q=80",
+      bg_color: "#ffedd5",
+      source_type: "collection",
+      handle: "cok-satanlar",
+      limit: 8,
+      position: "below_collection",
+      free_shipping_text: "HIZLI KARGO",
+      active: true,
+    },
   ]
 
-  const rawBannerCarousels: BannerCarouselConfig[] = Array.isArray(config?.banner_carousels)
-    ? config.banner_carousels.filter((b: BannerCarouselConfig) => b && b.active !== false)
-    : defaultBannerCarousels
+  const hasSingleLegacyBannerCarousel =
+    Array.isArray(config?.banner_carousels) &&
+    config.banner_carousels.length === 1 &&
+    config.banner_carousels[0]?.id === "banner-carousel-1"
+
+  const rawBannerCarousels: BannerCarouselConfig[] =
+    Array.isArray(config?.banner_carousels) && config.banner_carousels.length > 0 && !hasSingleLegacyBannerCarousel
+      ? config.banner_carousels.filter((b: BannerCarouselConfig) => b && b.active !== false)
+      : defaultBannerCarousels
 
   const resolvedBannerCarousels = await Promise.all(
-    rawBannerCarousels.map(async (bBlock) => {
+    rawBannerCarousels.map(async (bBlock, bIdx) => {
+      const rotateFallback = (limitCount: number) => {
+        if (!allProducts || allProducts.length === 0) return []
+        const offset = (bIdx * 2) % allProducts.length
+        const rotated = [...allProducts.slice(offset), ...allProducts.slice(0, offset)]
+        return rotated.slice(0, limitCount)
+      }
       try {
         const limit = bBlock.limit || 8
         if (bBlock.source_type === "category" && bBlock.handle) {
@@ -250,9 +424,9 @@ export default async function Home(props: {
             }
           }
         }
-        return { block: bBlock, products: allProducts.slice(0, limit) }
+        return { block: bBlock, products: rotateFallback(limit) }
       } catch (e) {
-        return { block: bBlock, products: allProducts.slice(0, 8) }
+        return { block: bBlock, products: rotateFallback(8) }
       }
     })
   )
