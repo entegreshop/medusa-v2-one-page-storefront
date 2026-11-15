@@ -150,6 +150,13 @@ export default function QuickCheckoutModal({
           headers: { "x-publishable-api-key": PUBLISHABLE_KEY }
        };
 
+       try {
+          const savedCoupon = window.localStorage.getItem("cizgibutik_active_coupon")
+          if (savedCoupon) {
+             setFormData(prev => ({ ...prev, coupon: prev.coupon || savedCoupon }))
+          }
+       } catch {}
+
        fetch(`${MEDUSA_URL}/store/hero-config`, fetchOptions)
           .then(res => res.json())
           .then(data => {

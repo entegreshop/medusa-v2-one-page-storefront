@@ -1,6 +1,7 @@
 import { Metadata } from "next"
 
 import Hero from "@modules/home/components/hero"
+import CouponBanner from "@modules/home/components/coupon-banner"
 import PromoBanners from "@modules/home/components/promo-banners"
 import TrustBadges from "@modules/home/components/trust-badges"
 import CategoryTabs from "@modules/home/components/category-tabs"
@@ -178,6 +179,9 @@ export default async function Home(props: {
 
   return (
     <>
+      {/* 0. BellButik Style Luxury Coupon Banner Above Hero */}
+      <CouponBanner config={config?.coupon_banner} />
+
       {/* 1. Campaign Hero Slider */}
       <Hero dict={dict} />
 
