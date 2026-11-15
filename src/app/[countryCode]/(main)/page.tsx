@@ -67,22 +67,31 @@ export default async function Home(props: {
 
   const categoryQuery = searchParams.category || "yeni-gelenler"
 
-  let products: any[] = []
-  let count = 0
+  // Always fetch latest products pool for the n11-style Category Tab Carousel
+  const latestRes = await listProducts({
+    regionId: region.id,
+    queryParams: {
+      fields: "*variants.calculated_price",
+      limit: 20,
+      order: "-created_at",
+    },
+  })
+  const allProducts = latestRes.response.products || []
+
+  let products: any[] = allProducts
+  let count = latestRes.response.count || allProducts.length
   let activeCategoryId: string | undefined = undefined
   let activeCollectionId: string | undefined = undefined
 
-  if (categoryQuery === "yeni-gelenler") {
-    const res = await listProducts({
-      regionId: region.id,
-      queryParams: {
-        fields: "*variants.calculated_price",
-        limit: 12,
-        order: "-created_at",
-      },
-    })
-    products = res.response.products
-    count = res.response.count
+  if (
+    categoryQuery === "tumu" ||
+    categoryQuery === "yeni-gelenler" ||
+    categoryQuery === "kuponlu-urun" ||
+    categoryQuery === "indirimli-urun" ||
+    categoryQuery === "cok-al-az-ode"
+  ) {
+    products = allProducts
+    count = latestRes.response.count
   } else if (categoryQuery === "cok-satanlar") {
     const cokSatanlarCollection =
       collections.find((c) => c.handle === "çok-satanlar" || c.handle === "cok-satanlar") || collections[0]
@@ -94,11 +103,13 @@ export default async function Home(props: {
         queryParams: {
           collection_id: [cokSatanlarCollection.id],
           fields: "*variants.calculated_price",
-          limit: 12,
+          limit: 16,
         },
       })
-      products = res.response.products
-      count = res.response.count
+      if (res.response.products?.length > 0) {
+        products = res.response.products
+        count = res.response.count
+      }
     }
   } else {
     const categoryObj = await getCategoryByHandle([categoryQuery])
@@ -109,11 +120,13 @@ export default async function Home(props: {
         queryParams: {
           category_id: [categoryObj.id],
           fields: "*variants.calculated_price",
-          limit: 12,
+          limit: 16,
         },
       })
-      products = res.response.products
-      count = res.response.count
+      if (res.response.products?.length > 0) {
+        products = res.response.products
+        count = res.response.count
+      }
     }
   }
 
@@ -227,9 +240,16 @@ export default async function Home(props: {
         <ProductCarouselBlock key={item.block.id} block={item.block} products={item.products} region={region} />
       ))}
 
-      {/* 3. Category Tab Bar Carousel */}
+      {/* 3. n11-Style Category Pill Tab Bar & 5-Column Product Carousel */}
       {config?.show_category_circles !== false && (
-        <CategoryTabs categories={configuredCategories} activeCategory={categoryQuery} />
+        <CategoryTabs
+          categories={configuredCategories}
+          activeCategory={categoryQuery}
+          products={products}
+          allProducts={allProducts}
+          region={region}
+          sectionConfig={config?.category_tab_carousel}
+        />
       )}
 
       {/* 4. Products Grid Section */}

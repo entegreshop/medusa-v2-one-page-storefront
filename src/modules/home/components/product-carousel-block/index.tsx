@@ -2,8 +2,8 @@
 
 import React, { useRef, useEffect } from "react"
 import { HttpTypes } from "@medusajs/types"
-import ProductPreview from "@modules/products/components/product-preview"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import { N11ProductCard } from "@modules/home/components/category-tabs"
 
 export interface CarouselBlockConfig {
   id: string
@@ -37,7 +37,7 @@ export default function ProductCarouselBlock({
   const scrollByAmount = (dir: "left" | "right") => {
     const el = scrollRef.current
     if (!el) return
-    const cardWidth = el.clientWidth > 768 ? el.clientWidth * 0.5 : el.clientWidth * 0.8
+    const cardWidth = el.clientWidth > 768 ? el.clientWidth * 0.8 : el.clientWidth * 0.85
     el.scrollBy({
       left: dir === "left" ? -cardWidth : cardWidth,
       behavior: "smooth",
@@ -45,14 +45,14 @@ export default function ProductCarouselBlock({
   }
 
   useEffect(() => {
-    if (!block.autoplay || !products || products.length <= 4) return
+    if (!block.autoplay || !products || products.length <= 5) return
     const timer = window.setInterval(() => {
       const el = scrollRef.current
       if (!el) return
       if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 20) {
         el.scrollTo({ left: 0, behavior: "smooth" })
       } else {
-        el.scrollBy({ left: 300, behavior: "smooth" })
+        el.scrollBy({ left: 260, behavior: "smooth" })
       }
     }, 4500)
     return () => window.clearInterval(timer)
@@ -60,90 +60,88 @@ export default function ProductCarouselBlock({
 
   if (!products || products.length === 0) return null
 
-  const accent = block.accent_color || "#7C3AED"
+  const accent = block.accent_color || "#c91d82"
   const bgColor = block.bg_color || "#ffffff"
-  const textColor = block.text_color || "#111827"
+  const textColor = block.text_color || "#1f2937"
 
   return (
     <section
-      className="w-full py-10 md:py-14 border-b border-zinc-100"
+      className="w-full py-7 md:py-9 border-b border-zinc-100 select-none"
       style={{ backgroundColor: bgColor, color: textColor }}
     >
-      <div className="content-container">
-        {/* Header Row */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+      <div className="content-container px-4 md:px-8">
+        {/* Header Row (n11 Style: Title Left, "Tümünü Gör >" Right) */}
+        <div className="flex items-center justify-between gap-4 mb-4">
           <div>
             {block.badge_text && (
               <span
-                className="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest mb-2.5"
+                className="inline-block px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider mb-1.5"
                 style={{
-                  backgroundColor: `${accent}18`,
+                  backgroundColor: `${accent}15`,
                   color: accent,
                 }}
               >
                 {block.badge_text}
               </span>
             )}
-            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight" style={{ color: textColor }}>
+            <h2 className="text-[19px] md:text-[22px] font-bold tracking-tight" style={{ color: textColor }}>
               {block.title}
             </h2>
             {block.subtitle && (
-              <p className="text-sm text-zinc-500 mt-1 max-w-2xl">{block.subtitle}</p>
+              <p className="text-xs md:text-sm text-zinc-500 mt-0.5">{block.subtitle}</p>
             )}
           </div>
 
-          <div className="flex items-center gap-3 self-start md:self-auto">
-            {block.btn_text && (
-              <LocalizedClientLink
-                href={block.btn_link || "/store"}
-                className="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors hover:opacity-90"
-                style={{
-                  borderColor: accent,
-                  color: accent,
-                }}
-              >
-                {block.btn_text} →
-              </LocalizedClientLink>
-            )}
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => scrollByAmount("left")}
-                aria-label="Önceki Ürünler"
-                className="w-9 h-9 rounded-full border border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-100 flex items-center justify-center shadow-2xs transition"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollByAmount("right")}
-                aria-label="Sonraki Ürünler"
-                className="w-9 h-9 rounded-full border border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-100 flex items-center justify-center shadow-2xs transition"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-          </div>
+          <LocalizedClientLink
+            href={block.btn_link || "/store"}
+            className="inline-flex items-center gap-1 text-[13.5px] font-semibold hover:underline transition-opacity hover:opacity-85 shrink-0"
+            style={{ color: accent }}
+          >
+            <span>{block.btn_text || "Tümünü Gör"}</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </LocalizedClientLink>
         </div>
 
-        {/* Horizontal Scroll-Snap Product Track */}
-        <div
-          ref={scrollRef}
-          className="flex gap-4 md:gap-6 overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar"
-          style={{ scrollbarWidth: "none" }}
-        >
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="snap-start shrink-0 w-[210px] sm:w-[250px] md:w-[280px]"
-            >
-              <ProductPreview product={product} region={region} />
-            </div>
-          ))}
+        {/* 5-Column Product Carousel Track with Floating Side Arrows */}
+        <div className="relative group/track">
+          <button
+            type="button"
+            onClick={() => scrollByAmount("left")}
+            aria-label="Önceki Ürünler"
+            className="absolute -left-2 md:-left-4 top-[42%] -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white border border-[#e5e7eb] shadow-[0_4px_14px_rgba(0,0,0,0.14)] flex items-center justify-center text-[#374151] hover:text-black hover:scale-105 transition cursor-pointer"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => scrollByAmount("right")}
+            aria-label="Sonraki Ürünler"
+            className="absolute -right-2 md:-right-4 top-[42%] -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white border border-[#e5e7eb] shadow-[0_4px_14px_rgba(0,0,0,0.14)] flex items-center justify-center text-[#374151] hover:text-black hover:scale-105 transition cursor-pointer"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          <div
+            ref={scrollRef}
+            className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-none scroll-smooth"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {products.map((product, idx) => (
+              <div
+                key={product.id}
+                className="snap-start shrink-0 w-[calc(50%-6px)] sm:w-[calc(33.333%-8px)] md:w-[calc(25%-9px)] lg:w-[calc(20%-9.6px)] min-w-[165px]"
+              >
+                <N11ProductCard product={product} region={region} index={idx} accentColor={accent} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
