@@ -6,6 +6,7 @@ import PromoBanners from "@modules/home/components/promo-banners"
 import TrustBadges from "@modules/home/components/trust-badges"
 import CategoryTabs from "@modules/home/components/category-tabs"
 import ProductCarouselBlock, { CarouselBlockConfig } from "@modules/home/components/product-carousel-block"
+import BannerCategoryCarousel, { BannerCarouselConfig } from "@modules/home/components/banner-category-carousel"
 import { Text } from "@medusajs/ui"
 import InfiniteProducts from "@modules/store/components/infinite-products"
 import { listCollections } from "@lib/data/collections"
@@ -188,6 +189,98 @@ export default async function Home(props: {
   )
   const carouselsBelowProducts = resolvedCarousels.filter((c) => c.block.position === "below_products")
 
+  // Load products for Banner-Overlaid Category Carousels (n11 Style without top circular brand badges)
+  const defaultBannerCarousels: BannerCarouselConfig[] = [
+    {
+      id: "banner-carousel-1",
+      title: "Kışlık Kombinler",
+      title_color: "#111827",
+      cta_text: "Fırsatları Kaçırma",
+      cta_link: "/store",
+      cta_color: "#f02d9c",
+      footer_note: "Sezon sonuna kadar geçerlidir. Fırsat; kupon ve sepette indirim avantajlarını kapsar.",
+      badge_text: "YENİ SEZON FIRSATI",
+      bg_image_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&auto=format&fit=crop&q=80",
+      bg_color: "#dce6f2",
+      source_type: "latest",
+      handle: "",
+      limit: 8,
+      position: "below_collection",
+      free_shipping_text: "HIZLI KARGO",
+      active: true,
+    },
+  ]
+
+  const rawBannerCarousels: BannerCarouselConfig[] = Array.isArray(config?.banner_carousels)
+    ? config.banner_carousels.filter((b: BannerCarouselConfig) => b && b.active !== false)
+    : defaultBannerCarousels
+
+  const resolvedBannerCarousels = await Promise.all(
+    rawBannerCarousels.map(async (bBlock) => {
+      try {
+        const limit = bBlock.limit || 8
+        if (bBlock.source_type === "category" && bBlock.handle) {
+          const catObj = await getCategoryByHandle([bBlock.handle])
+          if (catObj) {
+            const res = await listProducts({
+              regionId: region.id,
+              queryParams: {
+                category_id: [catObj.id],
+                fields: "*variants.calculated_price",
+                limit,
+              },
+            })
+            if (res.response.products?.length > 0) {
+              return { block: bBlock, products: res.response.products }
+            }
+          }
+        } else if (bBlock.source_type === "collection" && bBlock.handle) {
+          const colObj = collections.find((c) => c.handle === bBlock.handle)
+          if (colObj) {
+            const res = await listProducts({
+              regionId: region.id,
+              queryParams: {
+                collection_id: [colObj.id],
+                fields: "*variants.calculated_price",
+                limit,
+              },
+            })
+            if (res.response.products?.length > 0) {
+              return { block: bBlock, products: res.response.products }
+            }
+          }
+        }
+        return { block: bBlock, products: allProducts.slice(0, limit) }
+      } catch (e) {
+        return { block: bBlock, products: allProducts.slice(0, 8) }
+      }
+    })
+  )
+
+  const isHeroReplacedByCarousel = config?.hero_display_mode === "banner_carousel"
+  const showHeroBanner =
+    config?.show_hero_banner !== false &&
+    config?.hero_display_mode !== "banner_carousel" &&
+    config?.hero_display_mode !== "hidden"
+
+  const bannerCarouselsReplaceHero = resolvedBannerCarousels.filter(
+    (c) => c.block.position === "replace_hero" || (isHeroReplacedByCarousel && c === resolvedBannerCarousels[0])
+  )
+  const bannerCarouselsAboveBanners = resolvedBannerCarousels.filter(
+    (c) => !bannerCarouselsReplaceHero.includes(c) && c.block.position === "above_banners"
+  )
+  const bannerCarouselsBelowBanners = resolvedBannerCarousels.filter(
+    (c) => !bannerCarouselsReplaceHero.includes(c) && c.block.position === "below_banners"
+  )
+  const bannerCarouselsBelowCollection = resolvedBannerCarousels.filter(
+    (c) =>
+      !bannerCarouselsReplaceHero.includes(c) &&
+      (!c.block.position || c.block.position === "below_collection")
+  )
+  const bannerCarouselsBelowProducts = resolvedBannerCarousels.filter(
+    (c) => !bannerCarouselsReplaceHero.includes(c) && c.block.position === "below_products"
+  )
+
   const configuredCategories = (config?.categories || []).filter((c: any) => c.active !== false)
 
   return (
@@ -195,8 +288,12 @@ export default async function Home(props: {
       {/* 0. BellButik Style Luxury Coupon Banner Above Hero */}
       <CouponBanner config={config?.coupon_banner} />
 
-      {/* 1. Campaign Hero Slider */}
-      <Hero dict={dict} />
+      {/* 1. Campaign Hero Slider (or Banner-Overlaid Category Carousel if configured to replace Hero) */}
+      {showHeroBanner && <Hero dict={dict} />}
+
+      {bannerCarouselsReplaceHero.map((item) => (
+        <BannerCategoryCarousel key={item.block.id} bannerBlock={item.block} products={item.products} region={region} />
+      ))}
 
       {/* Home page scrolling announcement marquee (placed below Hero) */}
       {config?.scrolling_text_home_enabled !== false && marqueeText && (
@@ -227,6 +324,11 @@ export default async function Home(props: {
         </div>
       )}
 
+      {/* Banner-Overlaid Category Carousels placed Above Banners */}
+      {bannerCarouselsAboveBanners.map((item) => (
+        <BannerCategoryCarousel key={item.block.id} bannerBlock={item.block} products={item.products} region={region} />
+      ))}
+
       {/* Carousel Blocks placed Above Banners */}
       {carouselsAboveBanners.map((item) => (
         <ProductCarouselBlock key={item.block.id} block={item.block} products={item.products} region={region} />
@@ -234,6 +336,11 @@ export default async function Home(props: {
 
       {/* 2. Campaign Double Bento Banners */}
       {config?.show_promo_banners !== false && <PromoBanners />}
+
+      {/* Banner-Overlaid Category Carousels placed Below Banners */}
+      {bannerCarouselsBelowBanners.map((item) => (
+        <BannerCategoryCarousel key={item.block.id} bannerBlock={item.block} products={item.products} region={region} />
+      ))}
 
       {/* Carousel Blocks placed Below Banners */}
       {carouselsBelowBanners.map((item) => (
@@ -251,6 +358,11 @@ export default async function Home(props: {
           sectionConfig={config?.category_tab_carousel}
         />
       )}
+
+      {/* Banner-Overlaid Category Carousels placed Below Collection */}
+      {bannerCarouselsBelowCollection.map((item) => (
+        <BannerCategoryCarousel key={item.block.id} bannerBlock={item.block} products={item.products} region={region} />
+      ))}
 
       {/* 4. Products Grid Section */}
       <div className="bg-white py-12 border-b border-zinc-200">
@@ -284,6 +396,9 @@ export default async function Home(props: {
       </div>
 
       {/* Carousel Blocks placed Below Products */}
+      {bannerCarouselsBelowProducts.map((item) => (
+        <BannerCategoryCarousel key={item.block.id} bannerBlock={item.block} products={item.products} region={region} />
+      ))}
       {carouselsBelowProducts.map((item) => (
         <ProductCarouselBlock key={item.block.id} block={item.block} products={item.products} region={region} />
       ))}
