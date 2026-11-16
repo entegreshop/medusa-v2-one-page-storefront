@@ -5,6 +5,7 @@ import CouponBanner from "@modules/home/components/coupon-banner"
 import PromoBanners from "@modules/home/components/promo-banners"
 import TrustBadges from "@modules/home/components/trust-badges"
 import CategoryTabs from "@modules/home/components/category-tabs"
+import CategoryCircleTabs from "@modules/home/components/category-circle-tabs"
 import ProductCarouselBlock, { CarouselBlockConfig } from "@modules/home/components/product-carousel-block"
 import BannerCategoryCarousel, { BannerCarouselConfig } from "@modules/home/components/banner-category-carousel"
 import { Text } from "@medusajs/ui"
@@ -538,8 +539,12 @@ export default async function Home(props: {
         <BannerCategoryCarousel key={item.block.id} bannerBlock={item.block} products={item.products} region={region} />
       ))}
 
-      {/* 4. Products Grid Section */}
-      <div className="bg-white py-12 border-b border-zinc-200">
+      {/* 4. Circular Category Tabs + 4-Column Products Grid Section */}
+      {config?.show_category_circles !== false && (
+        <CategoryCircleTabs categories={configuredCategories} activeCategory={categoryQuery} />
+      )}
+
+      <div className="bg-white py-8 border-b border-zinc-200">
         <div className="content-container">
           {products && products.length > 0 ? (
             <InfiniteProducts
