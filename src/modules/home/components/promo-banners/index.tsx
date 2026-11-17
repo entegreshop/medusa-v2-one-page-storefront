@@ -42,8 +42,8 @@ async function getBannersConfig() {
   }
 }
 
-export default async function PromoBanners() {
-  const banners = await getBannersConfig()
+export default async function PromoBanners({ initialBanners }: { initialBanners?: any[] }) {
+  const banners = Array.isArray(initialBanners) && initialBanners.length > 0 ? initialBanners : await getBannersConfig()
 
   return (
     <div className="w-full bg-white py-12 border-b border-zinc-200">

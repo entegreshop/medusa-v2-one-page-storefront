@@ -7,6 +7,11 @@ import { SortOptions } from "@modules/store/components/refinement-list/sort-prod
 import { getAuthHeaders, getCacheOptions } from "./cookies"
 import { getRegion, retrieveRegion } from "./regions"
 
+const bulkProductsCache = new Map<
+  string,
+  { products: HttpTypes.StoreProduct[]; count: number; expiresAt: number }
+>()
+
 export const listProducts = async ({
   pageParam = 1,
   queryParams,
@@ -45,12 +50,27 @@ export const listProducts = async ({
     }
   }
 
+  const cacheKey = `${region.id}:${offset}:${limit}:${JSON.stringify(queryParams || {})}`
+  const cached = bulkProductsCache.get(cacheKey)
+  if (cached && Date.now() < cached.expiresAt) {
+    const nextPage = cached.count > offset + limit ? pageParam + 1 : null
+    return {
+      response: {
+        products: cached.products,
+        count: cached.count,
+      },
+      nextPage,
+      queryParams,
+    }
+  }
+
   const headers = {
     ...(await getAuthHeaders()),
   }
 
   const next = {
     ...(await getCacheOptions("products")),
+    revalidate: 60,
   }
 
   return sdk.client
@@ -68,10 +88,17 @@ export const listProducts = async ({
         },
         headers,
         next,
-        cache: "force-cache",
       }
     )
     .then(({ products, count }) => {
+      if (products && products.length > 0) {
+        bulkProductsCache.set(cacheKey, {
+          products,
+          count,
+          expiresAt: Date.now() + 60 * 1000,
+        })
+      }
+
       const nextPage = count > offset + limit ? pageParam + 1 : null
 
       return {
@@ -79,15 +106,12 @@ export const listProducts = async ({
           products,
           count,
         },
-        nextPage: nextPage,
+        nextPage,
         queryParams,
       }
     })
 }
 
-/**
- * Paginates products directly via backend offset/limit for fast response times.
- */
 export const listProductsWithSort = async ({
   page = 1,
   queryParams,
@@ -119,9 +143,9 @@ export const listProductsWithSort = async ({
     })
 
     const sortedProducts = sortProducts(products, sortBy)
-    const offset = (currentPage - 1) * limit
-    const nextPage = count > offset + limit ? currentPage + 1 : null
-    const paginatedProducts = sortedProducts.slice(offset, offset + limit)
+    const startOffset = (currentPage - 1) * limit
+    const paginatedProducts = sortedProducts.slice(startOffset, startOffset + limit)
+    const nextPage = count > startOffset + limit ? currentPage + 1 : null
 
     return {
       response: {
@@ -133,10 +157,7 @@ export const listProductsWithSort = async ({
     }
   }
 
-  const {
-    response: { products, count },
-    nextPage,
-  } = await listProducts({
+  return listProducts({
     pageParam: currentPage,
     queryParams: {
       ...queryParams,
@@ -145,13 +166,4 @@ export const listProductsWithSort = async ({
     },
     countryCode,
   })
-
-  return {
-    response: {
-      products,
-      count,
-    },
-    nextPage,
-    queryParams,
-  }
 }

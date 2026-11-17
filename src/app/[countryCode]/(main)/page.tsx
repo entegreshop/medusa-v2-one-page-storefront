@@ -30,7 +30,7 @@ async function getHeroConfig() {
       headers["x-publishable-api-key"] = NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
     }
     const res = await fetch(`${NEXT_PUBLIC_MEDUSA_BACKEND_URL}/store/hero-config`, {
-      next: { revalidate: 10 },
+      cache: "no-store",
       headers,
     })
     const data = await res.json()
@@ -41,6 +41,106 @@ async function getHeroConfig() {
   }
 }
 
+function toLightProductCard(p: any): any {
+  if (!p) return p
+  return {
+    id: p.id,
+    title: p.title,
+    subtitle: p.subtitle,
+    handle: p.handle,
+    thumbnail: p.thumbnail,
+    images: Array.isArray(p.images)
+      ? p.images.slice(0, 4).map((img: any) => ({ id: img.id, url: img.url }))
+      : [],
+    categories: Array.isArray(p.categories)
+      ? p.categories.map((c: any) => ({ id: c.id, name: c.name, handle: c.handle }))
+      : [],
+    options: Array.isArray(p.options)
+      ? p.options.map((o: any) => ({
+          id: o.id,
+          title: o.title,
+          values: Array.isArray(o.values) ? o.values.map((v: any) => ({ id: v.id, value: v.value })) : [],
+        }))
+      : [],
+    variants: Array.isArray(p.variants)
+      ? p.variants.map((v: any) => ({
+          id: v.id,
+          title: v.title,
+          sku: v.sku,
+          manage_inventory: v.manage_inventory,
+          allow_backorder: v.allow_backorder,
+          inventory_quantity: v.inventory_quantity,
+          options: Array.isArray(v.options)
+            ? v.options.map((vo: any) => ({ id: vo.id, option_id: vo.option_id, value: vo.value }))
+            : [],
+          calculated_price: v.calculated_price
+            ? {
+                calculated_amount: v.calculated_price.calculated_amount,
+                original_amount: v.calculated_price.original_amount,
+                currency_code: v.calculated_price.currency_code,
+                calculated_price: v.calculated_price.calculated_price
+                  ? { price_list_type: v.calculated_price.calculated_price.price_list_type }
+                  : undefined,
+              }
+            : undefined,
+        }))
+      : [],
+  }
+}
+
+function matchProductsFromPool(
+  pool: any[],
+  sourceType?: string,
+  handle?: string,
+  limitCount: number = 8,
+  offsetIdx: number = 0
+): any[] {
+  if (!pool || pool.length === 0) return []
+  const rotateFallback = () => {
+    const offset = (offsetIdx * 2) % pool.length
+    const rotated = [...pool.slice(offset), ...pool.slice(0, offset)]
+    return rotated.slice(0, limitCount)
+  }
+
+  if (sourceType === "category" && handle) {
+    const hLower = handle.toLowerCase()
+    const matched = pool.filter((p) => {
+      const catHandles = (p.categories || []).map((c: any) => (c.handle || "").toLowerCase())
+      if (catHandles.includes(hLower)) return true
+      const t = (p.title || "").toLocaleLowerCase("tr-TR")
+      const ph = (p.handle || "").toLocaleLowerCase("tr-TR")
+      if (hLower === "kombin") {
+        return t.includes("takım") || t.includes("kombin") || ph.includes("takim") || ph.includes("kombin")
+      }
+      if (hLower === "jean-pantolon" || hLower === "jean") {
+        return t.includes("jean") || t.includes("kot") || t.includes("pantolon") || ph.includes("jean") || ph.includes("pantolon")
+      }
+      if (hLower === "tayt") {
+        return t.includes("tayt") || ph.includes("tayt")
+      }
+      if (hLower === "sweat") {
+        return t.includes("sweat") || t.includes("kapüşon") || t.includes("eşofman") || ph.includes("sweat")
+      }
+      if (hLower === "mont") {
+        return t.includes("mont") || t.includes("kürk") || t.includes("kaban") || t.includes("ceket") || ph.includes("mont")
+      }
+      if (hLower === "tshirt") {
+        return t.includes("t-shirt") || t.includes("tshirt") || t.includes("tişört") || t.includes("crop") || ph.includes("tshirt")
+      }
+      if (hLower === "gozluk") {
+        return t.includes("gözlük") || ph.includes("gozluk")
+      }
+      if (hLower === "canta") {
+        return t.includes("çanta") || ph.includes("canta")
+      }
+      return catHandles.some((ch: string) => ch.includes(hLower) || hLower.includes(ch))
+    })
+    return matched.length > 0 ? matched.slice(0, limitCount) : rotateFallback()
+  }
+
+  return rotateFallback()
+}
+
 export default async function Home(props: {
   params: Promise<{ countryCode: string }>
   searchParams: Promise<{ category?: string }>
@@ -49,13 +149,14 @@ export default async function Home(props: {
   const searchParams = await props.searchParams
   const { countryCode } = params
 
-  const region = await getRegion(countryCode)
+  const region = (await getRegion(countryCode)) || (await getRegion("tr"))
 
-  const { collections } = await listCollections({
+  const { collections: rawCollections } = await listCollections({
     fields: "id, handle, title",
-  })
+  }).catch(() => ({ collections: [] }))
+  const collections = rawCollections || []
 
-  if (!collections || !region) {
+  if (!region) {
     return null
   }
 
@@ -69,16 +170,16 @@ export default async function Home(props: {
 
   const categoryQuery = searchParams.category || "yeni-gelenler"
 
-  // Always fetch latest products pool for the n11-style Category Tab Carousel
+  // Always fetch latest products pool once for the homepage carousels & category grid
   const latestRes = await listProducts({
     regionId: region.id,
     queryParams: {
-      fields: "*variants.calculated_price",
-      limit: 20,
+      fields: "*variants.calculated_price,*categories,*images",
+      limit: 100,
       order: "-created_at",
     },
   })
-  const allProducts = latestRes.response.products || []
+  const allProducts = (latestRes.response.products || []).map(toLightProductCard)
 
   let products: any[] = allProducts
   let count = latestRes.response.count || allProducts.length
@@ -86,103 +187,30 @@ export default async function Home(props: {
   let activeCollectionId: string | undefined = undefined
 
   if (
-    categoryQuery === "tumu" ||
-    categoryQuery === "yeni-gelenler" ||
-    categoryQuery === "kuponlu-urun" ||
-    categoryQuery === "indirimli-urun" ||
-    categoryQuery === "cok-al-az-ode"
+    categoryQuery !== "tumu" &&
+    categoryQuery !== "yeni-gelenler" &&
+    categoryQuery !== "kuponlu-urun" &&
+    categoryQuery !== "indirimli-urun" &&
+    categoryQuery !== "cok-al-az-ode" &&
+    categoryQuery !== "cok-satanlar"
   ) {
-    products = allProducts
-    count = latestRes.response.count
-  } else if (categoryQuery === "cok-satanlar") {
-    const cokSatanlarCollection =
-      collections.find((c) => c.handle === "çok-satanlar" || c.handle === "cok-satanlar") || collections[0]
-
-    if (cokSatanlarCollection) {
-      activeCollectionId = cokSatanlarCollection.id
-      const res = await listProducts({
-        regionId: region.id,
-        queryParams: {
-          collection_id: [cokSatanlarCollection.id],
-          fields: "*variants.calculated_price",
-          limit: 16,
-        },
-      })
-      if (res.response.products?.length > 0) {
-        products = res.response.products
-        count = res.response.count
-      }
-    }
-  } else {
-    const categoryObj = await getCategoryByHandle([categoryQuery])
+    const categoryObj = await getCategoryByHandle([categoryQuery]).catch(() => undefined)
     if (categoryObj) {
       activeCategoryId = categoryObj.id
-      const res = await listProducts({
-        regionId: region.id,
-        queryParams: {
-          category_id: [categoryObj.id],
-          fields: "*variants.calculated_price",
-          limit: 16,
-        },
-      })
-      if (res.response.products?.length > 0) {
-        products = res.response.products
-        count = res.response.count
-      }
     }
+    products = matchProductsFromPool(allProducts, "category", categoryQuery, 20, 0)
+    count = products.length
   }
 
-  // Load products for configured Carousel Blocks
+  // Load products for configured Carousel Blocks in-memory without redundant HTTP roundtrips
   const rawCarousels: CarouselBlockConfig[] = Array.isArray(config?.carousel_blocks)
     ? config.carousel_blocks.filter((b: CarouselBlockConfig) => b && b.active !== false)
     : []
 
-  const resolvedCarousels = await Promise.all(
-    rawCarousels.map(async (block) => {
-      try {
-        const limit = block.limit || 8
-        if (block.source_type === "category" && block.handle) {
-          const catObj = await getCategoryByHandle([block.handle])
-          if (catObj) {
-            const res = await listProducts({
-              regionId: region.id,
-              queryParams: {
-                category_id: [catObj.id],
-                fields: "*variants.calculated_price",
-                limit,
-              },
-            })
-            return { block, products: res.response.products }
-          }
-        } else if (block.source_type === "collection" && block.handle) {
-          const colObj = collections.find((c) => c.handle === block.handle)
-          if (colObj) {
-            const res = await listProducts({
-              regionId: region.id,
-              queryParams: {
-                collection_id: [colObj.id],
-                fields: "*variants.calculated_price",
-                limit,
-              },
-            })
-            return { block, products: res.response.products }
-          }
-        }
-        // Default: latest products
-        const res = await listProducts({
-          regionId: region.id,
-          queryParams: {
-            fields: "*variants.calculated_price",
-            limit,
-            order: "-created_at",
-          },
-        })
-        return { block, products: res.response.products }
-      } catch (e) {
-        return { block, products: [] }
-      }
-    })
-  )
+  const resolvedCarousels = rawCarousels.map((block, idx) => ({
+    block,
+    products: matchProductsFromPool(allProducts, block.source_type, block.handle, block.limit || 8, idx),
+  }))
 
   const carouselsAboveBanners = resolvedCarousels.filter((c) => c.block.position === "above_banners")
   const carouselsBelowBanners = resolvedCarousels.filter(
@@ -384,53 +412,10 @@ export default async function Home(props: {
       ? config.banner_carousels.filter((b: BannerCarouselConfig) => b && b.active !== false)
       : defaultBannerCarousels
 
-  const resolvedBannerCarousels = await Promise.all(
-    rawBannerCarousels.map(async (bBlock, bIdx) => {
-      const rotateFallback = (limitCount: number) => {
-        if (!allProducts || allProducts.length === 0) return []
-        const offset = (bIdx * 2) % allProducts.length
-        const rotated = [...allProducts.slice(offset), ...allProducts.slice(0, offset)]
-        return rotated.slice(0, limitCount)
-      }
-      try {
-        const limit = bBlock.limit || 8
-        if (bBlock.source_type === "category" && bBlock.handle) {
-          const catObj = await getCategoryByHandle([bBlock.handle])
-          if (catObj) {
-            const res = await listProducts({
-              regionId: region.id,
-              queryParams: {
-                category_id: [catObj.id],
-                fields: "*variants.calculated_price",
-                limit,
-              },
-            })
-            if (res.response.products?.length > 0) {
-              return { block: bBlock, products: res.response.products }
-            }
-          }
-        } else if (bBlock.source_type === "collection" && bBlock.handle) {
-          const colObj = collections.find((c) => c.handle === bBlock.handle)
-          if (colObj) {
-            const res = await listProducts({
-              regionId: region.id,
-              queryParams: {
-                collection_id: [colObj.id],
-                fields: "*variants.calculated_price",
-                limit,
-              },
-            })
-            if (res.response.products?.length > 0) {
-              return { block: bBlock, products: res.response.products }
-            }
-          }
-        }
-        return { block: bBlock, products: rotateFallback(limit) }
-      } catch (e) {
-        return { block: bBlock, products: rotateFallback(8) }
-      }
-    })
-  )
+  const resolvedBannerCarousels = rawBannerCarousels.map((bBlock, bIdx) => ({
+    block: bBlock,
+    products: matchProductsFromPool(allProducts, bBlock.source_type, bBlock.handle, bBlock.limit || 8, bIdx),
+  }))
 
   const isHeroReplacedByCarousel = config?.hero_display_mode === "banner_carousel"
   const showHeroBanner =
@@ -464,7 +449,7 @@ export default async function Home(props: {
       <CouponBanner config={config?.coupon_banner} />
 
       {/* 1. Campaign Hero Slider (or Banner-Overlaid Category Carousel if configured to replace Hero) */}
-      {showHeroBanner && <Hero dict={dict} />}
+      {showHeroBanner && <Hero dict={dict} initialConfig={config} />}
 
       {bannerCarouselsReplaceHero.map((item) => (
         <BannerCategoryCarousel key={item.block.id} bannerBlock={item.block} products={item.products} region={region} />
@@ -510,7 +495,7 @@ export default async function Home(props: {
       ))}
 
       {/* 2. Campaign Double Bento Banners */}
-      {config?.show_promo_banners !== false && <PromoBanners />}
+      {config?.show_promo_banners !== false && <PromoBanners initialBanners={config?.banners} />}
 
       {/* Banner-Overlaid Category Carousels placed Below Banners */}
       {bannerCarouselsBelowBanners.map((item) => (

@@ -1,5 +1,5 @@
 import { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { redirect } from "next/navigation"
 
 import { getCategoryByHandle, listCategories } from "@lib/data/categories"
 import { listRegions } from "@lib/data/regions"
@@ -50,20 +50,22 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
   try {
     const productCategory = await getCategoryByHandle(params.category)
+    if (!productCategory) {
+      return { title: "Çizgi Butik | Kategoriler" }
+    }
 
-    const title = productCategory.name + " | Medusa Store"
-
-    const description = productCategory.description ?? `${title} category.`
+    const title = productCategory.name + " | Çizgi Butik"
+    const description = productCategory.description ?? `${title}`
 
     return {
-      title: `${title} | Medusa Store`,
+      title,
       description,
       alternates: {
         canonical: `${params.category.join("/")}`,
       },
     }
   } catch (error) {
-    notFound()
+    return { title: "Çizgi Butik | Kategoriler" }
   }
 }
 
@@ -72,10 +74,22 @@ export default async function CategoryPage(props: Props) {
   const params = await props.params
   const { sortBy, page } = searchParams
 
-  const productCategory = await getCategoryByHandle(params.category)
+  let productCategory = await getCategoryByHandle(params.category).catch(() => null)
 
   if (!productCategory) {
-    notFound()
+    const allCats = await listCategories().catch(() => [])
+    const targetSlug = (params.category?.[params.category.length - 1] || "").toLowerCase()
+    productCategory =
+      allCats?.find(
+        (c: any) =>
+          c.handle?.toLowerCase() === targetSlug ||
+          c.handle?.toLowerCase()?.includes(targetSlug) ||
+          targetSlug.includes(c.handle?.toLowerCase() || "___")
+      ) || null
+  }
+
+  if (!productCategory) {
+    redirect(`/${params.countryCode || "tr"}/store`)
   }
 
   return (
@@ -83,7 +97,7 @@ export default async function CategoryPage(props: Props) {
       category={productCategory}
       sortBy={sortBy}
       page={page}
-      countryCode={params.countryCode}
+      countryCode={params.countryCode || "tr"}
     />
   )
 }
