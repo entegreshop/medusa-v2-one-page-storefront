@@ -524,28 +524,33 @@ export default function ProductActions({
     currency_code: region?.currency_code || 'TRY'
   })
 
-  const lastTrackedProductRef = useRef<{ id: string; price: number } | null>(null)
+  const lastTrackedProductRef = useRef<string | null>(null)
 
-  // Track ViewContent event
+  // Track ViewContent event once per product page visit (deduplicated across variant/color/size changes)
   useEffect(() => {
-    if (product && selectedPrice) {
-      const priceNum = selectedPrice.calculated_price_number || 0
+    if (product?.id && selectedPrice) {
+      const win = typeof window !== "undefined" ? (window as any) : null
       if (
-        lastTrackedProductRef.current?.id === product.id &&
-        lastTrackedProductRef.current?.price === priceNum
+        lastTrackedProductRef.current === product.id ||
+        win?.__bkmLastViewContentProductId === product.id
       ) {
         return
       }
-      lastTrackedProductRef.current = { id: product.id, price: priceNum }
+      lastTrackedProductRef.current = product.id
+      if (win) {
+        win.__bkmLastViewContentProductId = product.id
+      }
 
+      const priceNum = selectedPrice.calculated_price_number || 0
       trackViewContent({
         id: product.id,
         title: product.title || "",
         price: priceNum,
-        currency: (region?.currency_code || "TRY").toUpperCase()
+        currency: (region?.currency_code || "TRY").toUpperCase(),
+        event_id: `vc_${product.id}_${Date.now()}`,
       })
     }
-  }, [product.id, selectedPrice?.calculated_price_number])
+  }, [product?.id, selectedPrice?.calculated_price_number, product?.title, region?.currency_code])
 
   const whatsappUrl = `https://wa.me/${btnConfig.whatsapp_number}?text=${encodeURIComponent(
     `Merhaba, ${product.title} ürününü satın almak istiyorum.`

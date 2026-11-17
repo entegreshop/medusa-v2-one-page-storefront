@@ -64,76 +64,100 @@ function sendGaRealtimeHeartbeat(urlPath: string) {
 export default function PixelRouteTracker({ config }: { config: any }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const categoryQuery = searchParams?.get("category") || ""
 
+  // Canonical page key ignores in-page variant parameters like ?RENK=SIYAH&BEDEN=L or ?v_id=...
+  const normPath = (pathname || "/").replace(/\/+$/, "") || "/"
+  const pageKey = categoryQuery ? `${normPath}?category=${categoryQuery}` : normPath
+
+  // Real-time GA4 visitor heartbeat for live dashboard radar (only depends on pageKey, not color/size changes)
   useEffect(() => {
-    const url =
-      pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "")
-
-    // Always send real-time GA4 visitor heartbeat for live dashboard radar
-    sendGaRealtimeHeartbeat(url)
+    sendGaRealtimeHeartbeat(pageKey)
     const intervalId = setInterval(() => {
       if (document.visibilityState === "visible") {
-        sendGaRealtimeHeartbeat(url)
+        sendGaRealtimeHeartbeat(pageKey)
       }
     }, 20000)
 
-    if (!config) {
-      return () => clearInterval(intervalId)
-    }
+    return () => clearInterval(intervalId)
+  }, [pageKey])
+
+  // PageView & ViewCategory tracking (strictly deduplicated per canonical pageKey)
+  useEffect(() => {
+    if (!config) return
 
     const { meta_pixel, google_analytics, tiktok_pixel } = config
+    const win = window as any
 
-    if (globalLastTrackedUrl === url) {
-      return () => clearInterval(intervalId)
+    if (win.fbq) {
+      win.fbq.disablePushState = true
     }
-    globalLastTrackedUrl = url
 
-    // 1. Meta Pixel PageView
-    if (meta_pixel?.active && meta_pixel?.pixel_id && (window as any).fbq) {
-      ;(window as any).fbq("track", "PageView")
+    if (!normPath.includes("/products/")) {
+      win.__bkmLastViewContentProductId = null
     }
+
+    // 1. Meta Pixel PageView (deduplicated against inline #fb-pixel script & variant URL changes)
+    const metaPixelId = String(meta_pixel?.pixel_id || "").trim()
+    const isMetaActive = Boolean(metaPixelId) && meta_pixel?.active !== false
+
+    if (
+      isMetaActive &&
+      win.fbq &&
+      win.__bkmLastTrackedPageKey !== pageKey &&
+      globalLastTrackedUrl !== pageKey
+    ) {
+      win.__bkmLastTrackedPageKey = pageKey
+      win.fbq("track", "PageView", {}, { eventID: `pv_${pageKey}_${Date.now()}` })
+    } else if (win.__bkmLastTrackedPageKey === pageKey) {
+      // Already tracked by inline #fb-pixel on initial load
+      globalLastTrackedUrl = pageKey
+    }
+
+    if (win.__bkmLastAnalyticsPageKey === pageKey) {
+      return
+    }
+    win.__bkmLastAnalyticsPageKey = pageKey
+    globalLastTrackedUrl = pageKey
 
     // 2. TikTok Pixel page view
-    if (tiktok_pixel?.active && tiktok_pixel?.pixel_id && (window as any).ttq) {
-      ;(window as any).ttq.page()
+    if (tiktok_pixel?.active && tiktok_pixel?.pixel_id && win.ttq) {
+      win.ttq.page()
     }
 
     // 3. Google Analytics (GA4) page view
     if (
       google_analytics?.active &&
       google_analytics?.measurement_id &&
-      (window as any).gtag
+      win.gtag
     ) {
-      ;(window as any).gtag("event", "page_view", {
-        page_path: url,
+      win.gtag("event", "page_view", {
+        page_path: pageKey,
         page_location: window.location.href,
         page_title: document.title,
       })
     }
 
     // 4. ViewCategory Event
-    const categoryQuery = searchParams?.get("category")
-    const isCategoryPath = pathname.includes("/categories/")
+    const isCategoryPath = normPath.includes("/categories/")
 
     if (categoryQuery || isCategoryPath) {
       const categoryName =
-        categoryQuery || pathname.split("/").pop() || "Category"
+        categoryQuery || normPath.split("/").pop() || "Category"
 
-      if (meta_pixel?.active && (window as any).fbq) {
-        ;(window as any).fbq("trackCustom", "ViewCategory", {
+      if (isMetaActive && win.fbq) {
+        win.fbq("trackCustom", "ViewCategory", {
           content_category: categoryName,
         })
       }
 
-      if (tiktok_pixel?.active && (window as any).ttq) {
-        ;(window as any).ttq.track("ViewContent", {
+      if (tiktok_pixel?.active && win.ttq) {
+        win.ttq.track("ViewContent", {
           content_category: categoryName,
         })
       }
     }
-
-    return () => clearInterval(intervalId)
-  }, [pathname, searchParams, config])
+  }, [pageKey, categoryQuery, normPath, config])
 
   return null
 }

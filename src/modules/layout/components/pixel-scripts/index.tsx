@@ -116,8 +116,22 @@ export default async function PixelScripts() {
                 t.src=v;s=b.getElementsByTagName(e)[0];
                 s.parentNode.insertBefore(t,s)}(window, document,'script',
                 'https://connect.facebook.net/en_US/fbevents.js');
-                fbq('init', '${metaPixelId}');
-                fbq('track', 'PageView');
+                if (!window.__bkmFbInitialized) {
+                  window.__bkmFbInitialized = true;
+                  fbq.disablePushState = true;
+                  fbq('init', '${metaPixelId}');
+                }
+                (function() {
+                  try {
+                    var normPath = (window.location.pathname || '/').replace(/\\/+$/, '') || '/';
+                    var catParam = new URLSearchParams(window.location.search || '').get('category');
+                    var pageKey = catParam ? (normPath + '?category=' + catParam) : normPath;
+                    if (window.__bkmLastTrackedPageKey !== pageKey) {
+                      window.__bkmLastTrackedPageKey = pageKey;
+                      fbq('track', 'PageView', {}, { eventID: 'pv_' + pageKey + '_' + Date.now() });
+                    }
+                  } catch (e) {}
+                })();
               `,
             }}
           />
@@ -147,7 +161,7 @@ export default async function PixelScripts() {
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
-                gtag('config', '${gaMeasurementId}', { send_page_view: true });
+                gtag('config', '${gaMeasurementId}', { send_page_view: false });
               `,
             }}
           />

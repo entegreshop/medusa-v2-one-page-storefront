@@ -57,8 +57,15 @@ export const trackEvent = (
     }
   }
 
+  const eventId =
+    data.event_id ||
+    `${eventCategory}_${data.content_ids?.[0] || "item"}_${Date.now()}_${Math.random()
+      .toString(36)
+      .slice(2, 7)}`
+
   // 2. Meta Pixel (Facebook) Mapping
   if (typeof window !== "undefined" && window.fbq) {
+    window.fbq.disablePushState = true
     const metaPayload = {
       content_ids: data.content_ids,
       content_type: 'product',
@@ -71,45 +78,45 @@ export const trackEvent = (
     
     switch (eventCategory) {
       case "view_item":
-        window.fbq("track", "ViewContent", metaPayload, { eventID: data.event_id });
+        window.fbq("track", "ViewContent", metaPayload, { eventID: eventId });
         metaEventName = "ViewContent";
         break;
       case "add_to_cart":
-        window.fbq("track", "AddToCart", metaPayload, { eventID: data.event_id });
+        window.fbq("track", "AddToCart", metaPayload, { eventID: eventId });
         metaEventName = "AddToCart";
         break;
       case "begin_checkout":
-        window.fbq("track", "InitiateCheckout", metaPayload, { eventID: data.event_id });
+        window.fbq("track", "InitiateCheckout", metaPayload, { eventID: eventId });
         metaEventName = "InitiateCheckout";
         break;
       case "add_payment_info":
-        window.fbq("track", "AddPaymentInfo", metaPayload, { eventID: data.event_id });
+        window.fbq("track", "AddPaymentInfo", metaPayload, { eventID: eventId });
         metaEventName = "AddPaymentInfo";
         break;
       case "purchase":
         // Client-side purchase (Optional if relying solely on CAPI, but helps double tracking with eventID)
-        window.fbq("track", "Purchase", metaPayload, { eventID: data.event_id });
+        window.fbq("track", "Purchase", metaPayload, { eventID: eventId });
         metaEventName = "Purchase";
         break;
       case "search":
-        window.fbq("track", "Search", { search_string: data.search_string }, { eventID: data.event_id });
+        window.fbq("track", "Search", { search_string: data.search_string }, { eventID: eventId });
         metaEventName = "Search";
         break;
       case "view_category":
-        window.fbq("trackCustom", "ViewCategory", { content_category: data.content_category }, { eventID: data.event_id });
+        window.fbq("trackCustom", "ViewCategory", { content_category: data.content_category }, { eventID: eventId });
         metaEventName = "ViewCategory";
         break;
       case "view_cart":
         // ViewCart might be standard for some but custom works universally
-        window.fbq("trackCustom", "ViewCart", metaPayload);
+        window.fbq("trackCustom", "ViewCart", metaPayload, { eventID: eventId });
         metaEventName = "ViewCart"
         break;
     }
 
-    // Call server action for CAPI
+    // Call server action for CAPI (uses identical event_id so Meta deduplicates Browser + Server events)
     if (metaEventName) {
       sendMetaCAPIEvent(metaEventName, {
-        event_id: data.event_id || "",
+        event_id: eventId,
         value: data.value,
         currency: data.currency,
         content_ids: data.content_ids,
@@ -166,5 +173,12 @@ export const trackViewCart = (data: any) => trackEvent("view_cart", { value: dat
 export const trackInitiateCheckout = (data: any) => trackEvent("begin_checkout", { value: data.total, currency: data.currency });
 export const trackAddPaymentInfo = (data: any) => trackEvent("add_payment_info", { value: data.total, currency: data.currency });
 export const trackPurchase = (data: any) => trackEvent("purchase", { value: data.total, currency: data.currency });
-export const trackViewContent = (data: any) => trackEvent("view_item", { value: data.price, currency: data.currency, content_name: data.title });
+export const trackViewContent = (data: any) =>
+  trackEvent("view_item", {
+    value: data.price,
+    currency: data.currency,
+    content_name: data.title,
+    content_ids: data.id ? [data.id] : [],
+    event_id: data.event_id,
+  });
 export const trackAddToCart = (data: any) => trackEvent("add_to_cart", { value: data.price, currency: data.currency, content_ids: [data.id] });
