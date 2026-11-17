@@ -197,15 +197,101 @@ export default async function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="flex flex-col md:flex-row items-center justify-between py-6 gap-y-4">
-          <div className="flex flex-col text-[11px] text-gray-500 text-center md:text-left gap-y-1">
+        <div className="grid grid-cols-1 md:grid-cols-3 items-center py-6 gap-y-5 border-t border-gray-100/60">
+          {/* Left: SSL & Copyright */}
+          <div className="flex flex-col text-[11px] text-gray-500 text-center md:text-left gap-y-1 order-2 md:order-1">
             <span>{footerSettings.ssl_badge_text || "Tüm bilgileriniz 256 bit SSL Sertifikası ile korunmaktadır."}</span>
             <span>
               {logoConfig?.footerCopyrightText || `© ${new Date().getFullYear()} Çizgi Butik Tüm Hakları Saklıdır`}
             </span>
           </div>
 
-          <div className="flex items-center gap-x-2">
+          {/* Center: Frameless Animated EntegreShop Logo (Action travels directly on the logo) */}
+          <div className="flex items-center justify-center order-1 md:order-2">
+            <style
+              dangerouslySetInnerHTML={{
+                __html: `
+                  @keyframes entegreLogoWave {
+                    0% { background-position: 180% 0; }
+                    65% { background-position: -60% 0; }
+                    100% { background-position: -60% 0; }
+                  }
+                  @keyframes entegreNodePulse {
+                    0%, 100% { transform: translate(-50%, -50%) scale(0.75); opacity: 0.25; }
+                    18% { transform: translate(-50%, -50%) scale(1.35); opacity: 1; }
+                    45% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.35; }
+                  }
+                  @keyframes entegreNodeRing {
+                    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.9; }
+                    45%, 100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0; }
+                  }
+                  .entegre-logo-mask-shine {
+                    background-image: linear-gradient(
+                      110deg,
+                      transparent 30%,
+                      rgba(16, 185, 129, 0.9) 44%,
+                      rgba(255, 255, 255, 0.98) 50%,
+                      rgba(56, 189, 248, 0.9) 56%,
+                      transparent 70%
+                    );
+                    background-size: 240% 100%;
+                    background-repeat: no-repeat;
+                    -webkit-mask-image: url('/entegreshop-logo.png');
+                    mask-image: url('/entegreshop-logo.png');
+                    -webkit-mask-size: contain;
+                    mask-size: contain;
+                    -webkit-mask-repeat: no-repeat;
+                    mask-repeat: no-repeat;
+                    -webkit-mask-position: center;
+                    mask-position: center;
+                    animation: entegreLogoWave 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+                  }
+                  .entegre-node-dot {
+                    animation: entegreNodePulse 3.2s ease-in-out infinite;
+                  }
+                  .entegre-node-ripple {
+                    animation: entegreNodeRing 3.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+                  }
+                `,
+              }}
+            />
+            <a
+              href="https://entegreshop.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="EntegreShop"
+              className="group relative inline-flex items-center justify-center cursor-pointer select-none transition-transform duration-300 hover:scale-105"
+            >
+              {/* Base Official EntegreShop Logo (Larger, Frameless) */}
+              <img
+                src="/entegreshop-logo.png"
+                alt="EntegreShop"
+                className="h-11 sm:h-12 w-auto object-contain block"
+                loading="lazy"
+              />
+
+              {/* Travelling Light & Energy Action Directly Inside the Logo Strokes */}
+              <span
+                aria-hidden="true"
+                className="entegre-logo-mask-shine pointer-events-none absolute inset-0 z-10"
+              />
+
+              {/* Circuit Terminal Spark on the Hexagon S-Node */}
+              <span
+                aria-hidden="true"
+                style={{ left: "20.4%", top: "32.5%" }}
+                className="entegre-node-ripple pointer-events-none absolute w-2.5 h-2.5 rounded-full bg-emerald-400/70 z-20"
+              />
+              <span
+                aria-hidden="true"
+                style={{ left: "20.4%", top: "32.5%" }}
+                className="entegre-node-dot pointer-events-none absolute w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] z-20"
+              />
+            </a>
+          </div>
+
+          {/* Right: Payment Methods */}
+          <div className="flex items-center justify-center md:justify-end gap-x-2 order-3">
             <div className="h-6 w-10 bg-gray-100 flex items-center justify-center rounded border border-gray-200">
               <span className="text-[10px] font-bold text-blue-800">VISA</span>
             </div>
