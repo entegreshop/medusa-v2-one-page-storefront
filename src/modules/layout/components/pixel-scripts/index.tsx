@@ -36,8 +36,47 @@ export async function fetchStorePixelConfig() {
   }
 }
 
+export async function fetchStoreActiveThemeAssets() {
+  try {
+    const backendUrl =
+      process.env.MEDUSA_BACKEND_URL ||
+      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
+      "https://api.cizgibutik.com"
+    const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || ""
+    const headers: Record<string, string> = {}
+    if (publishableKey) {
+      headers["x-publishable-api-key"] = publishableKey
+    }
+
+    const res = await fetch(`${backendUrl}/store/hero-config`, {
+      next: { revalidate: 30 },
+      headers,
+    })
+    if (res.ok) {
+      const data = await res.json()
+      const cfg = data?.config
+      if (cfg) {
+        const activeId = cfg.active_theme_id
+        const pool = Array.isArray(cfg.theme_pool) ? cfg.theme_pool : []
+        const activeTheme = pool.find((t: any) => t.id === activeId) || pool[0]
+        if (activeTheme) {
+          return {
+            id: activeTheme.id,
+            custom_css: activeTheme.custom_css || "",
+            custom_js: activeTheme.custom_js || "",
+          }
+        }
+      }
+    }
+  } catch {}
+  return null
+}
+
 export default async function PixelScripts() {
-  const config = await fetchStorePixelConfig()
+  const [config, activeThemeAssets] = await Promise.all([
+    fetchStorePixelConfig(),
+    fetchStoreActiveThemeAssets(),
+  ])
   if (!config) return null
 
   const {
@@ -297,6 +336,22 @@ export default async function PixelScripts() {
         <div
           id="custom-body-end-scripts"
           dangerouslySetInnerHTML={{ __html: custom_scripts.body_end_scripts }}
+        />
+      )}
+
+      {/* 9. EntegreShop Active Theme Custom CSS & JS Bundle */}
+      {activeThemeAssets?.custom_css && (
+        <style
+          id="entegreshop-active-theme-css"
+          data-theme-id={activeThemeAssets.id}
+          dangerouslySetInnerHTML={{ __html: activeThemeAssets.custom_css }}
+        />
+      )}
+      {activeThemeAssets?.custom_js && (
+        <script
+          id="entegreshop-active-theme-js"
+          data-theme-id={activeThemeAssets.id}
+          dangerouslySetInnerHTML={{ __html: activeThemeAssets.custom_js }}
         />
       )}
     </>
