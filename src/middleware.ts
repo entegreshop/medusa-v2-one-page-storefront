@@ -81,8 +81,13 @@ async function getCountryCode(
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // Static files or API routes pass right through
-  if (pathname.startsWith("/api/") || pathname.includes(".")) {
+  // Static files, API routes, or XML export feeds pass right through
+  if (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/export/") ||
+    pathname.startsWith("/xml/") ||
+    pathname.includes(".")
+  ) {
     return NextResponse.next()
   }
 
