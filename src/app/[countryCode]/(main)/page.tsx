@@ -17,7 +17,64 @@ import { getCategoryByHandle } from "@lib/data/categories"
 import { listProducts } from "@lib/data/products"
 
 export const metadata: Metadata = {
-  description: "Çizgi Butik - Yeni Sezon Kadın Giyim, Jean, Tayt ve Kombin Koleksiyonu",
+  title: "Çizgi Butik - Yeni Sezon Kadın Giyim & Online Butik",
+  description:
+    "Yeni sezon kadın giyim modelleri, şık elbiseler, ikili takımlar, ceketler ve jean koleksiyonları Çizgi Butik'te. Kapıda ödeme, hızlı kargo ve güvenli alışveriş fırsatıyla hemen keşfedin!",
+  keywords: [
+    "çizgi butik",
+    "kadın giyim",
+    "yeni sezon kadın giyim",
+    "online butik",
+    "bayan giyim",
+    "elbise modelleri",
+    "ikili takım",
+    "kapıda ödeme giyim",
+    "butik modelleri",
+    "trençkot",
+    "jean",
+  ],
+  alternates: {
+    canonical: "https://cizgibutik.com/tr",
+    languages: {
+      "tr-TR": "https://cizgibutik.com/tr",
+      "x-default": "https://cizgibutik.com/tr",
+    },
+  },
+  openGraph: {
+    title: "Çizgi Butik - Yeni Sezon Kadın Giyim & Online Butik",
+    description:
+      "Yeni sezon kadın giyim modelleri, şık elbiseler, ikili takımlar, ceketler ve jean koleksiyonları Çizgi Butik'te.",
+    url: "https://cizgibutik.com/tr",
+    siteName: "Çizgi Butik",
+    locale: "tr_TR",
+    type: "website",
+    images: [
+      {
+        url: "https://cizgibutik.com/cizgi-logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Çizgi Butik Kadın Giyim",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Çizgi Butik - Yeni Sezon Kadın Giyim & Online Butik",
+    description:
+      "Yeni sezon kadın giyim modelleri, şık elbiseler, ikili takımlar ve kombinler Çizgi Butik'te.",
+    images: ["https://cizgibutik.com/cizgi-logo.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 }
 
 const NEXT_PUBLIC_MEDUSA_BACKEND_URL = process.env.MEDUSA_BACKEND_URL || "https://api.cizgibutik.com"

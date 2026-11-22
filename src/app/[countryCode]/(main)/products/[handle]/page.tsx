@@ -219,15 +219,15 @@ function findVariantIdByOptions(
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
-  const { handle } = params
-  const region = await getRegion(params.countryCode)
+  const { handle, countryCode } = params
+  const region = await getRegion(countryCode)
 
   if (!region) {
     notFound()
   }
 
   const product = await listProducts({
-    countryCode: params.countryCode,
+    countryCode,
     queryParams: { handle },
   }).then(({ response }) => response.products[0])
 
@@ -235,13 +235,85 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     notFound()
   }
 
+  const cleanDescription = (product.description || "")
+    .replace(/<[^>]*>?/gm, " ")
+    .replace(/src="[^"]*"/gi, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 155)
+
+  const metaDescription = cleanDescription
+    ? `${cleanDescription} - Çizgi Butik'te en uygun fiyat, kapıda ödeme ve hızlı kargo avantajıyla hemen keşfedin!`
+    : `${product.title} en uygun fiyat, kapıda ödeme ve hızlı kargo avantajıyla Çizgi Butik'te. Yeni sezon kadın giyim kombinlerini hemen sipariş verin.`
+
+  const categoryName =
+    (product as any).categories?.[0]?.name ||
+    (product as any).collection?.title ||
+    "Kadın Giyim"
+  const pageTitle = `${product.title} - Fiyatı, Modelleri ve Yorumları | Çizgi Butik`
+  const canonicalUrl = `https://cizgibutik.com/${countryCode}/products/${handle}`
+
+  const imageUrl =
+    product.thumbnail ||
+    product.images?.[0]?.url ||
+    "https://cizgibutik.com/cizgi-logo.png"
+
   return {
-    title: `${product.title} | Medusa Store`,
-    description: `${product.title}`,
+    title: pageTitle,
+    description: metaDescription,
+    keywords: [
+      product.title,
+      `${product.title} fiyatı`,
+      `${product.title} modelleri`,
+      `${product.title} satın al`,
+      "kadın giyim",
+      "yeni sezon",
+      "butik giyim",
+      "online butik",
+      "kapıda ödeme",
+      "hızlı kargo",
+      "çizgi butik",
+      categoryName,
+    ].filter(Boolean) as string[],
+    alternates: {
+      canonical: canonicalUrl,
+      languages: {
+        "tr-TR": `https://cizgibutik.com/tr/products/${handle}`,
+        "x-default": `https://cizgibutik.com/tr/products/${handle}`,
+      },
+    },
     openGraph: {
-      title: `${product.title} | Medusa Store`,
-      description: `${product.title}`,
-      images: product.thumbnail ? [product.thumbnail] : [],
+      title: `${product.title} | Çizgi Butik`,
+      description: metaDescription,
+      url: canonicalUrl,
+      siteName: "Çizgi Butik",
+      locale: "tr_TR",
+      type: "website",
+      images: [
+        {
+          url: imageUrl,
+          width: 800,
+          height: 1067,
+          alt: `${product.title} - Çizgi Butik Kadın Giyim`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.title} | Çizgi Butik`,
+      description: metaDescription,
+      images: [imageUrl],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
   }
 }
@@ -273,6 +345,8 @@ export default async function ProductPage(props: Props) {
       /src="data:image\/[^;]+;base64,[^"]+"/gi,
       'src="" alt="Görsel boyutu nedeniyle gizlendi"'
     );
+  } else {
+    pricedProduct.description = `${pricedProduct.title}, Çizgi Butik yeni sezon kadın giyim koleksiyonunun en seçkin parçalarındandır. Kaliteli kumaş yapısı, zarif dikişleri ve rahat kalıbıyla hem günlük şıklığınızı hem de özel kombinlerinizi mükemmel şekilde tamamlar. Kapıda ödeme, hızlı kargo ve kolay değişim avantajıyla hemen sipariş verebilirsiniz.`;
   }
 
   if (pricedProduct.metadata) {

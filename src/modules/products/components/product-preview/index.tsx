@@ -29,6 +29,8 @@ export default function ProductPreview({
             images={product.images}
             size="full"
             isFeatured={isFeatured}
+            alt={`${product.title} - Çizgi Butik Kadın Giyim`}
+            title={`${product.title} - Çizgi Butik`}
             className="transition-transform duration-500 group-hover:scale-105 !rounded-none !shadow-none !p-0 !border-none !bg-transparent"
           />
         </div>

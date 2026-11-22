@@ -48,24 +48,71 @@ export async function generateStaticParams() {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
+  const countryCode = params.countryCode || "tr"
   try {
     const productCategory = await getCategoryByHandle(params.category)
     if (!productCategory) {
-      return { title: "Çizgi Butik | Kategoriler" }
+      return {
+        title: "Kadın Giyim Koleksiyonları | Çizgi Butik",
+        description: "En yeni kadın giyim trendleri, elbiseler, takımlar ve butik koleksiyonlar Çizgi Butik'te.",
+      }
     }
 
-    const title = productCategory.name + " | Çizgi Butik"
-    const description = productCategory.description ?? `${title}`
+    const title = `${productCategory.name} Modelleri ve Fiyatları | Çizgi Butik`
+    const description =
+      productCategory.description ||
+      `${productCategory.name} modelleri, en uygun fiyatlar, kapıda ödeme ve hızlı kargo avantajıyla Çizgi Butik'te! Yeni sezon ${productCategory.name} kombinlerini hemen keşfedin.`
+    const canonicalUrl = `https://cizgibutik.com/${countryCode}/categories/${params.category.join("/")}`
 
     return {
       title,
       description,
+      keywords: [
+        productCategory.name,
+        `${productCategory.name} modelleri`,
+        `${productCategory.name} fiyatları`,
+        `${productCategory.name} satın al`,
+        "kadın giyim",
+        "yeni sezon",
+        "butik giyim",
+        "çizgi butik",
+        "kapıda ödeme",
+        "hızlı kargo",
+      ],
       alternates: {
-        canonical: `${params.category.join("/")}`,
+        canonical: canonicalUrl,
+        languages: {
+          "tr-TR": `https://cizgibutik.com/tr/categories/${params.category.join("/")}`,
+          "x-default": `https://cizgibutik.com/tr/categories/${params.category.join("/")}`,
+        },
+      },
+      openGraph: {
+        title,
+        description,
+        url: canonicalUrl,
+        siteName: "Çizgi Butik",
+        locale: "tr_TR",
+        type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+      },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
       },
     }
   } catch (error) {
-    return { title: "Çizgi Butik | Kategoriler" }
+    return { title: "Kadın Giyim Koleksiyonları | Çizgi Butik" }
   }
 }
 

@@ -14,6 +14,8 @@ type ThumbnailProps = {
   isFeatured?: boolean
   className?: string
   "data-testid"?: string
+  alt?: string
+  title?: string
 }
 
 const Thumbnail: React.FC<ThumbnailProps> = ({
@@ -23,6 +25,8 @@ const Thumbnail: React.FC<ThumbnailProps> = ({
   isFeatured,
   className,
   "data-testid": dataTestid,
+  alt,
+  title,
 }) => {
   const initialImage = thumbnail || images?.[0]?.url
 
@@ -43,7 +47,7 @@ const Thumbnail: React.FC<ThumbnailProps> = ({
       )}
       data-testid={dataTestid}
     >
-      <ImageOrPlaceholder image={initialImage} size={size} />
+      <ImageOrPlaceholder image={initialImage} size={size} alt={alt} title={title} />
     </Container>
   )
 }
@@ -51,7 +55,9 @@ const Thumbnail: React.FC<ThumbnailProps> = ({
 const ImageOrPlaceholder = ({
   image,
   size,
-}: Pick<ThumbnailProps, "size"> & { image?: string }) => {
+  alt,
+  title,
+}: Pick<ThumbnailProps, "size"> & { image?: string; alt?: string; title?: string }) => {
   const [defaultImage, setDefaultImage] = useState<string | null>(null)
   const [loading, setLoading] = useState(!image)
 
@@ -75,7 +81,8 @@ const ImageOrPlaceholder = ({
   return finalImage ? (
     <img
       src={finalImage}
-      alt="Thumbnail"
+      alt={alt || "Çizgi Butik Kadın Giyim Ürünü"}
+      title={title || alt || "Çizgi Butik"}
       className="absolute inset-0 w-full h-full object-cover object-center"
       draggable={false}
     />

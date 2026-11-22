@@ -6,9 +6,10 @@ import { useState, useRef } from "react"
 
 type ImageGalleryProps = {
   images: HttpTypes.StoreProductImage[]
+  productTitle?: string
 }
 
-const ImageGallery = ({ images }: ImageGalleryProps) => {
+const ImageGallery = ({ images, productTitle }: ImageGalleryProps) => {
   const [activeIndex, setActiveIndex] = useState(0)
   const carouselRef = useRef<HTMLDivElement>(null)
 
@@ -71,7 +72,8 @@ const ImageGallery = ({ images }: ImageGalleryProps) => {
                   />
                 ) : (
                   <Image
-                    alt={`Thumbnail ${index + 1}`}
+                    alt={`${productTitle || "Ürün"} - Görsel ${index + 1} | Çizgi Butik`}
+                    title={`${productTitle || "Ürün"} - Görsel ${index + 1}`}
                     src={image.url}
                     fill
                     className="object-cover"
@@ -109,7 +111,8 @@ const ImageGallery = ({ images }: ImageGalleryProps) => {
                   />
                 ) : (
                   <Image
-                    alt="Product Image"
+                    alt={`${productTitle || "Ürün"} - Kadın Giyim Çizgi Butik Görsel ${index + 1}`}
+                    title={`${productTitle || "Ürün"} - Çizgi Butik`}
                     src={image.url}
                     fill
                     priority={index === 0}
