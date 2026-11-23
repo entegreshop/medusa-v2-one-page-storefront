@@ -130,7 +130,8 @@ export default function QuickCheckoutModal({
      priceStr = v?.calculated_price?.calculated_amount ? `${(numericalPrice).toLocaleString("tr-TR", {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL` : "Detaylı Ücret Seçilmedi"
   } else if (mode === "cart" && cart) {
      cartSubtotal = ((cart.item_subtotal || 0) + (cart.tax_total || 0)) / 100; // Ara toplam ve vergi (indirimsiz tutarı görebilmek için)
-     const rawDiscount = (cart.discount_total || cart.discount_subtotal || 0) / 100;
+     // Yalnızca kullanıcı geçerli bir kupon kodu girdiyse veya tanımladıysa indirim uygulanır
+     const rawDiscount = (formData.coupon && formData.coupon.trim() !== "") ? ((cart.discount_total || cart.discount_subtotal || 0) / 100) : 0;
      cartDiscount = cartDiscountOverride !== null ? cartDiscountOverride : rawDiscount;
      numericalPrice = Math.max(0, cartSubtotal - cartDiscount);
      priceStr = `${cartSubtotal.toLocaleString("tr-TR", {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL`
@@ -700,7 +701,7 @@ export default function QuickCheckoutModal({
                      SİPARİŞ ÖZETİ 
                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform duration-200 ${isSummaryOpen ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6"/></svg>
                   </span>
-                  <span className="text-[17px] font-bold text-black">{totalWithShippingStr}</span>
+                  <span className="text-[17px] font-bold text-black">{priceStr}</span>
                </button>
 
                {/* ACCORDION CONTENT */}
