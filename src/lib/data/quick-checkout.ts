@@ -143,6 +143,8 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
     metadataUpdate.is_cod = isCodOrder;
     metadataUpdate.payment_fee = isCodOrder ? 40 : 0;
     metadataUpdate.cod_fee_amount = isCodOrder ? 4000 : 0;
+    metadataUpdate.shipping_fee = 150;
+    metadataUpdate.coupon_code = data.coupon ? data.coupon.trim() : "";
 
     if (data.payment_method === 'cash_on_delivery') metadataUpdate.payment_option = "cash_on_delivery";
     else if (data.payment_method === 'cod_cc') metadataUpdate.payment_option = "card_on_delivery";
@@ -220,7 +222,11 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
                 "Content-Type": "application/json",
                 "x-publishable-api-key": publishableKey
             },
-            body: JSON.stringify({ cart_id: targetCartId, method_id: data.payment_method })
+            body: JSON.stringify({ 
+                cart_id: targetCartId, 
+                method_id: data.payment_method,
+                coupon_code: data.coupon ? data.coupon.trim() : ""
+            })
         }, 10000)
         logToFile("payment-cod/apply success");
     } catch(e: any) {

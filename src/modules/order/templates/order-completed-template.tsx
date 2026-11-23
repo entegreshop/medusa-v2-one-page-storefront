@@ -52,13 +52,16 @@ export default async function OrderCompletedTemplate({
     return acc + itemTotal
   }, 0)
 
-  const discountAmount = Number(order.discount_total || 0)
+  const metaCoupon = (metadata?.coupon || metadata?.coupon_code || metadata?.promo_code || "") as string
+  const hasRealCoupon = Boolean(metaCoupon && metaCoupon.trim() !== "")
+  // Yalnızca siparişte gerçekten girilmiş bir kupon kodu varsa indirim göster
+  const discountAmount = hasRealCoupon ? Number(order.discount_total || 0) : 0
   const numericalPrice = Math.max(0, realSubtotal - discountAmount)
   
   // Determine final shipping cost based on free shipping criteria
   const isFreeShipping = !isCod && isFreeShippingEnabled && numericalPrice >= freeShippingLimit
   const orderShippingMethodAmount = order.shipping_methods?.[0]?.amount !== undefined ? Number(order.shipping_methods[0].amount) : null
-  const actualShippingAmount = orderShippingMethodAmount ?? (order.shipping_total !== undefined ? Number(order.shipping_total) : dynamicShippingCost)
+  const actualShippingAmount = orderShippingMethodAmount ?? (order.shipping_total !== undefined && Number(order.shipping_total) > 0 ? Number(order.shipping_total) : dynamicShippingCost)
   const finalShippingAmount = isFreeShipping ? 0 : actualShippingAmount
 
   // Determine final COD fee based on payment method
