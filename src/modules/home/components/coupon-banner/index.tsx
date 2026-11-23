@@ -81,10 +81,9 @@ export default function CouponBanner({ config }: { config?: CouponBannerConfig |
       document.body.removeChild(input)
     }
 
-    if (cfg.auto_apply_checkout !== false && typeof window !== "undefined") {
+    if (typeof window !== "undefined") {
       try {
-        window.localStorage.setItem("cizgibutik_active_coupon", codeToCopy)
-        window.dispatchEvent(new CustomEvent("cizgibutik:coupon-copied", { detail: { code: codeToCopy } }))
+        window.localStorage.removeItem("cizgibutik_active_coupon")
       } catch {}
     }
 

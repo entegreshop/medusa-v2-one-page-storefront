@@ -139,6 +139,11 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
                                            'Kredi Kartı';
     
     // Set payment_option for backend admin UI recognition
+    const isCodOrder = data.payment_method === 'cash_on_delivery' || data.payment_method === 'cod_cc';
+    metadataUpdate.is_cod = isCodOrder;
+    metadataUpdate.payment_fee = isCodOrder ? 40 : 0;
+    metadataUpdate.cod_fee_amount = isCodOrder ? 4000 : 0;
+
     if (data.payment_method === 'cash_on_delivery') metadataUpdate.payment_option = "cash_on_delivery";
     else if (data.payment_method === 'cod_cc') metadataUpdate.payment_option = "card_on_delivery";
     else if (data.payment_method === 'havale') metadataUpdate.payment_option = "bank_transfer";
@@ -223,7 +228,7 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
         console.error("COD Uygulama Hatası:", e)
     }
 
-    // 3.5. APPLY COUPON IF PROVIDED
+    // 3.5. APPLY OR CLEAR COUPON
     if (data.coupon && data.coupon.trim() !== "") {
         console.log("[QuickCheckout] 3.5. Kupon uygulanıyor:", data.coupon)
         try {
@@ -236,6 +241,18 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
             console.log("[QuickCheckout] Kupon basariyla uygulandi")
         } catch(err: any) {
              console.error("[QuickCheckout] Kupon uygulama hatasi:", err.message)
+        }
+    } else {
+        console.log("[QuickCheckout] 3.5. Kupon temizleniyor (boş veya kaldırılmış)")
+        try {
+            await sdk.store.cart.update(
+                targetCartId,
+                { promo_codes: [] } as any,
+                {},
+                headers
+            )
+        } catch(err: any) {
+            console.warn("[QuickCheckout] Kupon temizleme notu:", err.message)
         }
     }
 

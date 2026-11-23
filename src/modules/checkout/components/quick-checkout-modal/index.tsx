@@ -5,6 +5,7 @@ import { createPortal } from "react-dom"
 import { HttpTypes } from "@medusajs/types"
 import { TURKEY_PROVINCES, TURKEY_DATA } from "@lib/data/iller"
 import { processQuickCheckout } from "@lib/data/quick-checkout"
+import { applyPromotions } from "@lib/data/cart"
 import { getAttributionForOrder } from "@lib/util/attribution"
 import { trackEvent } from "@lib/util/tracking"
 
@@ -111,6 +112,12 @@ export default function QuickCheckoutModal({
      free_shipping_enabled: true
   });
 
+  // Coupon state overrides
+  const [cartDiscountOverride, setCartDiscountOverride] = useState<number | null>(null);
+  const [couponInput, setCouponInput] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState("");
+
   // --- PRICE PRE-CALCULATION FOR META EVENTS ---
   let priceStr = "Hesaplanıyor..."
   let numericalPrice = 0;
@@ -122,11 +129,11 @@ export default function QuickCheckoutModal({
      numericalPrice = ((v?.calculated_price?.calculated_amount || 0) / 100) * quantity;
      priceStr = v?.calculated_price?.calculated_amount ? `${(numericalPrice).toLocaleString("tr-TR", {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL` : "Detaylı Ücret Seçilmedi"
   } else if (mode === "cart" && cart) {
-     numericalPrice = (cart.total || 0) / 100;
      cartSubtotal = ((cart.item_subtotal || 0) + (cart.tax_total || 0)) / 100; // Ara toplam ve vergi (indirimsiz tutarı görebilmek için)
-     cartDiscount = (cart.discount_total || cart.discount_subtotal || 0) / 100;
-     // Eğer indirim varsa Sepet fiyatı kısmında asıl fiyatı gösterelim, aşağıda indirimi düşeriz.
-     priceStr = `${(cartDiscount > 0 ? (numericalPrice + cartDiscount) : numericalPrice).toLocaleString("tr-TR", {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL`
+     const rawDiscount = (cart.discount_total || cart.discount_subtotal || 0) / 100;
+     cartDiscount = cartDiscountOverride !== null ? cartDiscountOverride : rawDiscount;
+     numericalPrice = Math.max(0, cartSubtotal - cartDiscount);
+     priceStr = `${cartSubtotal.toLocaleString("tr-TR", {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL`
   }
 
   const isCodActive = formData.payment_method === "cash_on_delivery";
@@ -142,6 +149,44 @@ export default function QuickCheckoutModal({
   const finalValue = numericalPrice > 0 ? numericalPrice + kargoFiyati + (isCodActive ? codSettings.additional_fee : (isCodCcActive ? codCcSettings.additional_fee : 0)) : 0;
   const totalWithShippingStr = numericalPrice > 0 ? `${finalValue.toLocaleString("tr-TR", {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL` : priceStr;
 
+  const handleApplyCoupon = async (codeToApply: string) => {
+     const code = codeToApply.trim();
+     if (!code) return;
+     setCouponLoading(true);
+     setCouponError("");
+     try {
+        if (mode === "cart") {
+           await applyPromotions([code]);
+        }
+        setFormData(prev => ({ ...prev, coupon: code }));
+        setCartDiscountOverride(null);
+     } catch (err: any) {
+        setCouponError(err?.message || "Kupon uygulanamadı");
+     } finally {
+        setCouponLoading(false);
+     }
+  };
+
+  const handleRemoveCoupon = async () => {
+     setCouponLoading(true);
+     setCouponError("");
+     setFormData(prev => ({ ...prev, coupon: "" }));
+     setCouponInput("");
+     setCartDiscountOverride(0);
+     try {
+        window.localStorage.removeItem("cizgibutik_active_coupon");
+     } catch {}
+     try {
+        if (mode === "cart") {
+           await applyPromotions([]);
+        }
+     } catch (err: any) {
+        console.error("Kupon kaldırma hatası:", err);
+     } finally {
+        setCouponLoading(false);
+     }
+  };
+
   useEffect(() => {
     setIsMounted(true)
     
@@ -155,10 +200,8 @@ export default function QuickCheckoutModal({
        };
 
        try {
-          const savedCoupon = window.localStorage.getItem("cizgibutik_active_coupon")
-          if (savedCoupon) {
-             setFormData(prev => ({ ...prev, coupon: prev.coupon || savedCoupon }))
-          }
+          // Asla kuponu otomatik doldurma, varsa temizle
+          window.localStorage.removeItem("cizgibutik_active_coupon");
        } catch {}
 
        fetch(`${MEDUSA_URL}/store/hero-config`, fetchOptions)
@@ -747,7 +790,7 @@ export default function QuickCheckoutModal({
                      {checkoutConfig.show_coupon !== false && (
                      <div className="pt-2 px-1">
                         <div className="flex flex-col gap-y-2">
-                           {formData.coupon ? (
+                           {formData.coupon && cartDiscount > 0 ? (
                                <div className="flex items-center justify-between text-sm font-semibold text-green-700 bg-green-50 p-2.5 rounded border border-green-200">
                                   <div className="flex items-center gap-x-1.5">
                                      <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
@@ -755,27 +798,42 @@ export default function QuickCheckoutModal({
                                   </div>
                                   <button
                                      type="button"
-                                     onClick={() => {
-                                        setFormData(prev => ({ ...prev, coupon: "" }));
-                                        try {
-                                           window.localStorage.removeItem("cizgibutik_active_coupon");
-                                        } catch {}
-                                     }}
-                                     className="text-xs text-red-600 hover:text-red-800 underline font-semibold ml-2 cursor-pointer"
+                                     disabled={couponLoading}
+                                     onClick={handleRemoveCoupon}
+                                     className="text-xs text-red-600 hover:text-red-800 underline font-semibold ml-2 cursor-pointer disabled:opacity-50"
                                   >
-                                     Kaldır
+                                     {couponLoading ? "Kaldırılıyor..." : "Kaldır"}
                                   </button>
                                </div>
                            ) : (
-                               <div className="flex gap-x-2">
-                                  <input type="text" name="coupon" placeholder="Kupon Kodu Ekle" className="flex-1 border border-gray-300 rounded p-2.5 text-[13px] focus:border-black outline-none bg-white placeholder-gray-400" value={formData.coupon} onChange={handleInputChange} />
-                                  <button type="button" onClick={() => {
-                                     if (formData.coupon.trim()) {
-                                        try {
-                                           window.localStorage.setItem("cizgibutik_active_coupon", formData.coupon.trim());
-                                        } catch {}
-                                     }
-                                  }} className="bg-gray-200 hover:bg-gray-300 px-5 rounded font-bold text-[13px] text-gray-700 transition-colors">Uygula</button>
+                               <div className="flex flex-col gap-y-1">
+                                 <div className="flex gap-x-2">
+                                    <input 
+                                       type="text" 
+                                       name="coupon_input" 
+                                       placeholder="Kupon Kodu Ekle" 
+                                       className="flex-1 border border-gray-300 rounded p-2.5 text-[13px] focus:border-black outline-none bg-white placeholder-gray-400" 
+                                       value={couponInput} 
+                                       onChange={(e) => setCouponInput(e.target.value)} 
+                                       onKeyDown={(e) => {
+                                          if (e.key === "Enter") {
+                                             e.preventDefault();
+                                             handleApplyCoupon(couponInput);
+                                          }
+                                       }}
+                                    />
+                                    <button 
+                                       type="button" 
+                                       disabled={couponLoading || !couponInput.trim()} 
+                                       onClick={() => handleApplyCoupon(couponInput)} 
+                                       className="bg-gray-200 hover:bg-gray-300 px-5 rounded font-bold text-[13px] text-gray-700 transition-colors disabled:opacity-50"
+                                    >
+                                       {couponLoading ? "..." : "Uygula"}
+                                    </button>
+                                 </div>
+                                 {couponError && (
+                                    <span className="text-xs text-red-600 font-medium pl-1">{couponError}</span>
+                                 )}
                                </div>
                            )}
                         </div>
