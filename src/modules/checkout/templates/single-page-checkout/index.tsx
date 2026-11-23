@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
 import { updateCart, setShippingMethod, initiatePaymentSession, placeOrder } from "@lib/data/cart"
+import { getAttributionForOrder } from "@lib/util/attribution"
 import { convertToLocale } from "@lib/util/money"
 import { sdk } from "@lib/config"
 import X from "@modules/common/icons/x"
@@ -373,30 +374,35 @@ export default function SinglePageCheckout({
     if (paymentSettings) {
       return paymentSettings.free_shipping_threshold
     }
-    return 500 // fallback default
+    return 3000 // fallback default: 3000 TL üzeri kargo bedava
   }, [shippingSettings, paymentSettings])
 
   const neededForFreeShipping = freeShippingThreshold - subtotalAmount
 
+  // Kapıda ödeme seçildiğinde kargo bedava kuralı uygulanmaz, her zaman 150 TL kargo ücreti eklenir!
   const isFreeShipping = useMemo(() => {
+    if (
+      paymentMethod === "cash_on_delivery" ||
+      paymentMethod === "card_on_delivery" ||
+      paymentMethod === "cod_cc"
+    ) {
+      return false
+    }
     return subtotalAmount >= freeShippingThreshold
-  }, [subtotalAmount, freeShippingThreshold])
+  }, [subtotalAmount, freeShippingThreshold, paymentMethod])
 
   // Kargo seçeneğinin güncellenmiş ücreti (cents bazında)
   const shippingSubtotalCents = useMemo(() => {
-    if (isFreeShipping) return 0
-    
-    const selectedMethod = cart.shipping_methods?.at(-1)
-    const original = cart.shipping_subtotal ?? 0
-    
-    if (shippingSettings?.standardShippingEnabled && selectedMethod) {
-      const name = selectedMethod.name || ""
-      if (name.toLowerCase().includes("standard") || name.toLowerCase().includes("standart")) {
-        return shippingSettings.standardShippingFee * 100
-      }
-    }
-    return original
-  }, [isFreeShipping, cart.shipping_methods, cart.shipping_subtotal, shippingSettings])
+    const isCod =
+      paymentMethod === "cash_on_delivery" ||
+      paymentMethod === "card_on_delivery" ||
+      paymentMethod === "cod_cc"
+
+    if (isFreeShipping && !isCod) return 0
+
+    const standardFee = shippingSettings?.standardShippingFee || 150
+    return standardFee * 100
+  }, [isFreeShipping, paymentMethod, shippingSettings])
 
   // Check availability of payment methods based on settings and cart subtotal
   const {
@@ -528,7 +534,8 @@ export default function SinglePageCheckout({
     setErrorMessage(null)
 
     try {
-      // 1. Submit final addresses and metadata
+      // 1. Submit final addresses, metadata and attribution tracking
+      const attribution = getAttributionForOrder()
       const updatedCart = await updateCart({
         email,
         shipping_address: {
@@ -565,6 +572,14 @@ export default function SinglePageCheckout({
         },
         metadata: {
           payment_option: paymentMethod,
+          secilen_odeme_yontemi:
+            paymentMethod === "bank_transfer"
+              ? "Havale / EFT"
+              : paymentMethod === "cash_on_delivery"
+              ? "Kapıda Nakit Ödeme"
+              : paymentMethod === "card_on_delivery"
+              ? "Kapıda Kredi Kartı ile Ödeme"
+              : "Kredi Kartı",
           tc_no: sameAsBilling ? "" : (billingType === "individual" ? tcNo : ""),
           company_name: sameAsBilling ? "" : (billingType === "corporate" ? companyName : ""),
           tax_office: sameAsBilling ? "" : (billingType === "corporate" ? taxOffice : ""),
@@ -572,9 +587,28 @@ export default function SinglePageCheckout({
           free_shipping_applied: isFreeShipping,
           original_shipping_subtotal: shippingSubtotalCents,
           custom_adjustments: customAdjustments,
-          adjusted_total: finalAdjustedTotal
+          adjusted_total: finalAdjustedTotal,
+          ...attribution,
         }
       })
+
+      // 1.5. Kapıda ödeme seçildiyse backend payment-cod ve kargo ücreti senkronizasyonu
+      if (paymentMethod === "cash_on_delivery" || paymentMethod === "card_on_delivery") {
+        try {
+          const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "https://api.cizgibutik.com"
+          const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || ""
+          await fetch(`${backendUrl}/store/custom/payment-cod/apply`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(publishableKey ? { "x-publishable-api-key": publishableKey } : {}),
+            },
+            body: JSON.stringify({ cart_id: cart.id, method_id: paymentMethod }),
+          })
+        } catch (codErr) {
+          console.warn("Kapıda ödeme senkronizasyon uyarısı:", codErr)
+        }
+      }
 
       // 2. Select shipping method
       const selectedOptionId = shippingMethodId || (shippingMethods && shippingMethods[0]?.id)

@@ -55,6 +55,7 @@ export type QuickCheckoutFormData = {
   cc_year?: string
   cc_cvv?: string
   client_ip?: string
+  attribution?: Record<string, string>
 }
 
 export async function processQuickCheckout(data: QuickCheckoutFormData) {
@@ -152,6 +153,15 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
         if (data.company_name) metadataUpdate.company_name = data.company_name
     }
 
+    if (data.client_ip) {
+        metadataUpdate.ip_address = data.client_ip
+    }
+
+    // Gerçek ziyaretçi dönüşüm & trafik kaynağı & UTM verilerini işle
+    if (data.attribution) {
+        Object.assign(metadataUpdate, data.attribution)
+    }
+
     await sdk.store.cart.update(
         targetCartId,
         { metadata: metadataUpdate },
@@ -219,7 +229,7 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
         try {
             await sdk.store.cart.update(
                 targetCartId,
-                { promotional_codes: [data.coupon] },
+                { promotional_codes: [data.coupon] } as any,
                 {},
                 headers
             )

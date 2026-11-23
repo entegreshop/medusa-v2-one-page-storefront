@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
+import { recordVisitorAttribution } from "@lib/util/attribution"
 
 let globalLastTrackedUrl = ""
 
@@ -69,6 +70,11 @@ export default function PixelRouteTracker({ config }: { config: any }) {
   // Canonical page key ignores in-page variant parameters like ?RENK=SIYAH&BEDEN=L or ?v_id=...
   const normPath = (pathname || "/").replace(/\/+$/, "") || "/"
   const pageKey = categoryQuery ? `${normPath}?category=${categoryQuery}` : normPath
+
+  // Record visitor attribution (traffic source, referrer, UTMs, device, session)
+  useEffect(() => {
+    recordVisitorAttribution()
+  }, [pageKey])
 
   // Real-time GA4 visitor heartbeat for live dashboard radar (only depends on pageKey, not color/size changes)
   useEffect(() => {

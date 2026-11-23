@@ -5,6 +5,7 @@ import { createPortal } from "react-dom"
 import { HttpTypes } from "@medusajs/types"
 import { TURKEY_PROVINCES, TURKEY_DATA } from "@lib/data/iller"
 import { processQuickCheckout } from "@lib/data/quick-checkout"
+import { getAttributionForOrder } from "@lib/util/attribution"
 import { trackEvent } from "@lib/util/tracking"
 
 // Types need to be defined safely for our actions
@@ -298,13 +299,15 @@ export default function QuickCheckoutModal({
         }
 
         // Doğrudan Server Action çağrılır
+        const attribution = getAttributionForOrder()
         const result = await processQuickCheckout({
             ...formData,
             country_code: region.countries?.[0]?.iso_2 || "tr",
             cart_id: cart?.id,
             variant_id: variantId,
             quantity: quantity,
-            client_ip: clientIpv4 || undefined
+            client_ip: clientIpv4 || undefined,
+            attribution: attribution,
         })
 
         if (result.success) {
