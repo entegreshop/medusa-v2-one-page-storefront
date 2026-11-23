@@ -229,7 +229,7 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
         try {
             await sdk.store.cart.update(
                 targetCartId,
-                { promotional_codes: [data.coupon] } as any,
+                { promo_codes: [data.coupon.trim()] } as any,
                 {},
                 headers
             )
@@ -241,7 +241,11 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
 
     try {
         logToFile("Retrieving cart...");
-        const { cart } = await sdk.store.cart.retrieve(targetCartId);
+        const { cart } = await sdk.store.cart.retrieve(
+            targetCartId,
+            { fields: "+payment_collection,+payment_collection.payment_sessions" },
+            headers
+        );
         
         let providerIdsToTry: string[] = [];
         if (data.payment_method === "credit_card") {
@@ -352,21 +356,21 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
         }
     }
 
-    let cartRes;
+    let cartRes: any;
     try {
         cartRes = await sdk.store.cart.complete(targetCartId, {}, headers)
     } catch(e: any) {
-        throw new Error(`5. Siparis tamamlanamadi: ${e.message || JSON.stringify(e)}`)
+        logToFile("5. Sipariş tamamlama hatası: " + (e?.message || JSON.stringify(e)));
+        const detail = e?.response?.data?.message || e?.message || "Bilinmeyen bir hata oluştu"
+        throw new Error(`5. Siparis tamamlanamadi: ${detail}`)
     }
     console.log("[QuickCheckout] 5. Siparisi Tamamlama Sonucu:", cartRes?.type)
 
     if (cartRes?.type === "order") {
-       // revalidateTag(await getCacheTag("orders")) // Yorum satırına alındı: Client side unmount'u engellemek için
-       // Sipariş başarıyla bittiği anda kullanıcının cihazından aktif sepet çerezini silmeliyiz! (Zaten completed oldu)
-       // await removeCartId() // Yorum satırına alındı: Sepet sayfası aniden yenilenip modalı kapatmasın diye
        return { success: true, orderId: cartRes.order.id }
     } else {
-       throw new Error("Siparis sirasinda bir eksiklik olustu.")
+       const detail = cartRes?.error?.message || "Sipariş oluşturulamadı."
+       throw new Error(`Sipariş tamamlanamadı: ${detail}`)
     }
 
   } catch (error: any) {

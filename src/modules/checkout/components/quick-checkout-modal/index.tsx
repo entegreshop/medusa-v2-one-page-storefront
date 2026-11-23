@@ -106,7 +106,7 @@ export default function QuickCheckoutModal({
 
   // Shipping Settings
   const [shippingSettings, setShippingSettings] = useState({
-     standard_rate: 60,
+     standard_rate: 150,
      free_shipping_limit: 3000,
      free_shipping_enabled: true
   });
@@ -129,13 +129,16 @@ export default function QuickCheckoutModal({
      priceStr = `${(cartDiscount > 0 ? (numericalPrice + cartDiscount) : numericalPrice).toLocaleString("tr-TR", {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL`
   }
 
+  const isCodActive = formData.payment_method === "cash_on_delivery";
+  const isCodCcActive = formData.payment_method === "cod_cc";
+
   let kargoFiyati = shippingSettings.standard_rate;
-  if (shippingSettings.free_shipping_enabled && numericalPrice >= shippingSettings.free_shipping_limit) {
+  // Kapıda ödemede kargo bedava kuralı uygulanmaz (her zaman standart kargo ücreti eklenir).
+  // Yalnızca online/havale ödemelerinde ücretsiz kargo limiti geçerlidir.
+  if (!isCodActive && !isCodCcActive && shippingSettings.free_shipping_enabled && numericalPrice >= shippingSettings.free_shipping_limit) {
       kargoFiyati = 0;
   }
   
-  const isCodActive = formData.payment_method === "cash_on_delivery";
-  const isCodCcActive = formData.payment_method === "cod_cc";
   const finalValue = numericalPrice > 0 ? numericalPrice + kargoFiyati + (isCodActive ? codSettings.additional_fee : (isCodCcActive ? codCcSettings.additional_fee : 0)) : 0;
   const totalWithShippingStr = numericalPrice > 0 ? `${finalValue.toLocaleString("tr-TR", {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL` : priceStr;
 
@@ -214,13 +217,27 @@ export default function QuickCheckoutModal({
                   
                   if (data.settings.shipping_settings) {
                      setShippingSettings({
-                        standard_rate: parseFloat(data.settings.shipping_settings.standard_rate) || 60,
+                        standard_rate: parseFloat(data.settings.shipping_settings.standard_rate) || 150,
                         free_shipping_limit: parseFloat(data.settings.shipping_settings.free_shipping_limit) || 3000,
                         free_shipping_enabled: data.settings.shipping_settings.free_shipping_enabled !== false
                      });
                   }
               }
           }).catch(err => console.error("Ayarlar çekilemedi", err))
+
+       fetch(`${MEDUSA_URL}/store/shipping-settings`, fetchOptions)
+          .then(res => res.json())
+          .then(data => {
+             if (data?.config) {
+                setShippingSettings(prev => ({
+                   ...prev,
+                   standard_rate: Number(data.config.standardShippingFee ?? prev.standard_rate ?? 150),
+                   free_shipping_limit: Number(data.config.freeShippingThreshold ?? prev.free_shipping_limit ?? 3000),
+                   free_shipping_enabled: data.config.freeShippingEnabled !== false
+                }))
+             }
+          })
+          .catch(() => {})
 
        fetch(`${MEDUSA_URL}/store/custom/shipping-carriers`, fetchOptions)
           .then(res => res.json())
@@ -699,7 +716,7 @@ export default function QuickCheckoutModal({
                         )}
                         <div className="flex justify-between text-[#6b7280]">
                            <span>Kargo</span>
-                           <span>60,00 TL</span>
+                           <span>{kargoFiyati === 0 ? "Ücretsiz Kargo" : `${kargoFiyati.toLocaleString("tr-TR", {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL`}</span>
                         </div>
                         {isCodActive && codSettings.additional_fee > 0 && (
                            <div className="flex justify-between text-[#6b7280]">
@@ -731,13 +748,34 @@ export default function QuickCheckoutModal({
                      <div className="pt-2 px-1">
                         <div className="flex flex-col gap-y-2">
                            {formData.coupon ? (
-                               <div className="text-sm font-semibold text-green-600 bg-green-50 p-2 rounded border border-green-200">
-                                  Kupon sisteme alındı: {formData.coupon}
+                               <div className="flex items-center justify-between text-sm font-semibold text-green-700 bg-green-50 p-2.5 rounded border border-green-200">
+                                  <div className="flex items-center gap-x-1.5">
+                                     <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                                     <span>Kupon: <span className="font-bold">{formData.coupon}</span></span>
+                                  </div>
+                                  <button
+                                     type="button"
+                                     onClick={() => {
+                                        setFormData(prev => ({ ...prev, coupon: "" }));
+                                        try {
+                                           window.localStorage.removeItem("cizgibutik_active_coupon");
+                                        } catch {}
+                                     }}
+                                     className="text-xs text-red-600 hover:text-red-800 underline font-semibold ml-2 cursor-pointer"
+                                  >
+                                     Kaldır
+                                  </button>
                                </div>
                            ) : (
                                <div className="flex gap-x-2">
                                   <input type="text" name="coupon" placeholder="Kupon Kodu Ekle" className="flex-1 border border-gray-300 rounded p-2.5 text-[13px] focus:border-black outline-none bg-white placeholder-gray-400" value={formData.coupon} onChange={handleInputChange} />
-                                  <button type="button" onClick={() => alert("Kuponunuz sisteme eklendi. Uygunluğu sipariş özetinize otomatik yansıtılacaktır.")} className="bg-gray-200 hover:bg-gray-300 px-5 rounded font-bold text-[13px] text-gray-700 transition-colors">Uygula</button>
+                                  <button type="button" onClick={() => {
+                                     if (formData.coupon.trim()) {
+                                        try {
+                                           window.localStorage.setItem("cizgibutik_active_coupon", formData.coupon.trim());
+                                        } catch {}
+                                     }
+                                  }} className="bg-gray-200 hover:bg-gray-300 px-5 rounded font-bold text-[13px] text-gray-700 transition-colors">Uygula</button>
                                </div>
                            )}
                         </div>

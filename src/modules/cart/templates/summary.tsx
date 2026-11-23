@@ -88,7 +88,7 @@ const Summary = ({ cart }: SummaryProps) => {
 
       {cartSettings.show_coupon_box !== false && <DiscountCode cart={cart} />}
       <Divider />
-      <CartTotals totals={cart} />
+      <CartTotals totals={cart} freeShippingThreshold={threshold} shippingFee={150} />
 
       <Button
         className="w-full h-12 uppercase tracking-widest text-[15px] transition-opacity hover:opacity-90 font-bold rounded-none border-none"

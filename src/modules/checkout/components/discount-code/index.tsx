@@ -154,9 +154,34 @@ const DiscountCouponsList = ({ cart, promotions, isLoading, setIsLoading, setErr
                 Uygula
               </Button>
             ) : (
-              <span className="text-[#25D366] text-sm font-bold flex items-center gap-x-1 border border-[#25D366] px-2 py-1 rounded bg-white">
-                Uygulandı ✔
-              </span>
+              <div className="flex items-center gap-x-2">
+                <span className="text-[#25D366] text-sm font-bold flex items-center gap-x-1 border border-[#25D366] px-2 py-1 rounded bg-white">
+                  Uygulandı ✔
+                </span>
+                <button
+                  type="button"
+                  className="text-xs text-red-600 hover:text-red-800 underline font-semibold cursor-pointer"
+                  onClick={async () => {
+                    setErrorMessage("");
+                    setIsLoading(true);
+                    const remainingCodes = promotions
+                      .filter((p: any) => p.code && p.code !== coupon.code)
+                      .map((p: any) => p.code!);
+                    try {
+                      await applyPromotions(remainingCodes);
+                      try {
+                        window.localStorage.removeItem("cizgibutik_active_coupon");
+                      } catch {}
+                    } catch (e: any) {
+                      setErrorMessage(e.message);
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                >
+                  Kaldır
+                </button>
+              </div>
             )}
           </div>
         );
