@@ -145,6 +145,10 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
     metadataUpdate.cod_fee_amount = isCodOrder ? 4000 : 0;
     metadataUpdate.shipping_fee = 150;
     metadataUpdate.coupon_code = data.coupon ? data.coupon.trim() : "";
+    if (!data.coupon || data.coupon.trim() === "") {
+        metadataUpdate.coupon = "";
+        metadataUpdate.promo_code = "";
+    }
 
     if (data.payment_method === 'cash_on_delivery') metadataUpdate.payment_option = "cash_on_delivery";
     else if (data.payment_method === 'cod_cc') metadataUpdate.payment_option = "card_on_delivery";

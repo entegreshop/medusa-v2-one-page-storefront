@@ -40,7 +40,7 @@ export default async function OrderCompletedTemplate({
      }
   } catch (e) {}
 
-  const isCod = metadata.payment_option === 'cash_on_delivery' || metadata.payment_option === 'card_on_delivery' || metadata.is_cod === true
+  const isCod = metadata.payment_option === 'cash_on_delivery' || metadata.payment_option === 'card_on_delivery' || metadata.is_cod === true || metadata.secilen_odeme_yontemi?.includes("Kapıda")
 
   // Exclude any COD fee items if they exist from past orders
   const displayItems = (order.items || []).filter(
@@ -52,16 +52,43 @@ export default async function OrderCompletedTemplate({
     return acc + itemTotal
   }, 0)
 
-  const metaCoupon = (metadata?.coupon || metadata?.coupon_code || metadata?.promo_code || "") as string
+  // Explicitly check for customer-entered coupon code
+  const metaCoupon = (metadata?.coupon_code || metadata?.coupon || metadata?.promo_code || "") as string
   const hasRealCoupon = Boolean(metaCoupon && metaCoupon.trim() !== "")
-  // Yalnızca siparişte gerçekten girilmiş bir kupon kodu varsa indirim göster
-  const discountAmount = hasRealCoupon ? Number(order.discount_total || 0) : 0
+
+  // Calculate genuine item / product discount (from coupon)
+  const itemsDiscountTotal = (displayItems || []).reduce((acc, item: any) => {
+    const adjSum = (item.adjustments || []).reduce((a: number, adj: any) => a + Number(adj.amount || 0), 0)
+    if (adjSum > 0) return acc + adjSum
+    return acc + Number(item.discount_total || 0)
+  }, 0)
+
+  // Only show discount if customer actually applied a coupon and there is a product discount
+  let discountAmount = 0
+  if (hasRealCoupon) {
+    if (itemsDiscountTotal > 0) {
+      discountAmount = itemsDiscountTotal
+    } else {
+      const rawDiscount = Number(order.discount_total || 0)
+      const shipAmount = order.shipping_methods?.[0]?.amount !== undefined ? Number(order.shipping_methods[0].amount) : 15000
+      // Ignore discount if it purely matches the shipping amount (i.e. Medusa free shipping adjustment)
+      if (rawDiscount > 0 && Math.abs(rawDiscount - shipAmount) > 100) {
+        discountAmount = rawDiscount
+      }
+    }
+  }
+
   const numericalPrice = Math.max(0, realSubtotal - discountAmount)
   
   // Determine final shipping cost based on free shipping criteria
+  // Kapıda ödemede kargo bedava kuralı ASLA uygulanmaz (her zaman 150 TL standart kargo eklenir)
   const isFreeShipping = !isCod && isFreeShippingEnabled && numericalPrice >= freeShippingLimit
-  const orderShippingMethodAmount = order.shipping_methods?.[0]?.amount !== undefined ? Number(order.shipping_methods[0].amount) : null
-  const actualShippingAmount = orderShippingMethodAmount ?? (order.shipping_total !== undefined && Number(order.shipping_total) > 0 ? Number(order.shipping_total) : dynamicShippingCost)
+  const orderShippingMethodAmount = (order.shipping_methods?.[0]?.amount !== undefined && Number(order.shipping_methods[0].amount) > 0)
+    ? Number(order.shipping_methods[0].amount)
+    : null
+  const actualShippingAmount = isCod
+    ? (dynamicShippingCost > 0 ? dynamicShippingCost : 15000)
+    : (orderShippingMethodAmount ?? (order.shipping_total !== undefined && Number(order.shipping_total) > 0 ? Number(order.shipping_total) : dynamicShippingCost))
   const finalShippingAmount = isFreeShipping ? 0 : actualShippingAmount
 
   // Determine final COD fee based on payment method
