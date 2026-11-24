@@ -112,11 +112,29 @@ export default function QuickCheckoutModal({
      free_shipping_enabled: true
   });
 
+  // Active coupon detection from existing cart
+  const activePromoCode = useMemo(() => {
+    if (mode !== "cart" || !cart) return "";
+    const promo = cart.promotions?.find((p: any) => p.code && !p.is_automatic) || cart.promotions?.[0];
+    if (promo?.code) return promo.code;
+    return (cart.metadata?.coupon_code as string) || (cart.metadata?.coupon as string) || "";
+  }, [mode, cart]);
+
   // Coupon state overrides
   const [cartDiscountOverride, setCartDiscountOverride] = useState<number | null>(null);
   const [couponInput, setCouponInput] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
+
+  // Sync active coupon from cart into formData and couponInput
+  useEffect(() => {
+    if (activePromoCode && !formData.coupon && cartDiscountOverride !== 0) {
+      setFormData(prev => ({ ...prev, coupon: activePromoCode }));
+      setCouponInput(activePromoCode);
+    }
+  }, [activePromoCode, cartDiscountOverride]);
+
+  const effectiveCoupon = cartDiscountOverride === 0 ? "" : (formData.coupon || activePromoCode || "").trim();
 
   // --- PRICE PRE-CALCULATION FOR META EVENTS ---
   let priceStr = "Hesaplanıyor..."
@@ -130,8 +148,8 @@ export default function QuickCheckoutModal({
      priceStr = v?.calculated_price?.calculated_amount ? `${(numericalPrice).toLocaleString("tr-TR", {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL` : "Detaylı Ücret Seçilmedi"
   } else if (mode === "cart" && cart) {
      cartSubtotal = ((cart.item_subtotal || 0) + (cart.tax_total || 0)) / 100; // Ara toplam ve vergi (indirimsiz tutarı görebilmek için)
-     // Yalnızca kullanıcı geçerli bir kupon kodu girdiyse veya tanımladıysa indirim uygulanır
-     const rawDiscount = (formData.coupon && formData.coupon.trim() !== "") ? ((cart.discount_total || cart.discount_subtotal || 0) / 100) : 0;
+     // Yalnızca kullanıcı geçerli bir kupon kodu girdiyse veya sepette zaten tanımlıysa indirim uygulanır
+     const rawDiscount = effectiveCoupon !== "" ? ((cart.discount_total || cart.discount_subtotal || 0) / 100) : 0;
      cartDiscount = cartDiscountOverride !== null ? cartDiscountOverride : rawDiscount;
      numericalPrice = Math.max(0, cartSubtotal - cartDiscount);
      priceStr = `${cartSubtotal.toLocaleString("tr-TR", {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL`
@@ -367,6 +385,7 @@ export default function QuickCheckoutModal({
         const attribution = getAttributionForOrder()
         const result = await processQuickCheckout({
             ...formData,
+            coupon: effectiveCoupon,
             country_code: region.countries?.[0]?.iso_2 || "tr",
             cart_id: cart?.id,
             variant_id: variantId,
@@ -795,11 +814,11 @@ export default function QuickCheckoutModal({
                      {checkoutConfig.show_coupon !== false && (
                      <div className="pt-2 px-1">
                         <div className="flex flex-col gap-y-2">
-                           {formData.coupon && cartDiscount > 0 ? (
+                           {(formData.coupon || effectiveCoupon) && cartDiscount > 0 ? (
                                <div className="flex items-center justify-between text-sm font-semibold text-green-700 bg-green-50 p-2.5 rounded border border-green-200">
                                   <div className="flex items-center gap-x-1.5">
                                      <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                                     <span>Kupon: <span className="font-bold">{formData.coupon}</span></span>
+                                     <span>Kupon: <span className="font-bold">{formData.coupon || effectiveCoupon}</span></span>
                                   </div>
                                   <button
                                      type="button"

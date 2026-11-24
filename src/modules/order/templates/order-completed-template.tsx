@@ -52,8 +52,9 @@ export default async function OrderCompletedTemplate({
     return acc + itemTotal
   }, 0)
 
-  // Explicitly check for customer-entered coupon code
-  const metaCoupon = (metadata?.coupon_code || metadata?.coupon || metadata?.promo_code || "") as string
+  // Explicitly check for customer-entered coupon code or active order promotion
+  const orderPromo = (order.promotions && order.promotions.length > 0 ? (order.promotions[0].code || "") : "")
+  const metaCoupon = (metadata?.coupon_code || metadata?.coupon || metadata?.promo_code || orderPromo || "") as string
   const hasRealCoupon = Boolean(metaCoupon && metaCoupon.trim() !== "")
 
   // Calculate genuine item / product discount (from coupon)
