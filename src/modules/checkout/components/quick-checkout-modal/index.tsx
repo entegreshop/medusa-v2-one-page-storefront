@@ -157,7 +157,11 @@ export default function QuickCheckoutModal({
      setCouponError("");
      try {
         if (mode === "cart") {
-           await applyPromotions([code]);
+           const res = await applyPromotions([code]);
+           if (res && !res.success) {
+              setCouponError(res.error || "Kupon uygulanamadı");
+              return;
+           }
         }
         setFormData(prev => ({ ...prev, coupon: code }));
         setCartDiscountOverride(null);

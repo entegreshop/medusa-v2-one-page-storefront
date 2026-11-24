@@ -326,23 +326,84 @@ export async function applyPromotions(codes: string[]) {
   const cartId = await getCartId()
 
   if (!cartId) {
-    throw new Error("No existing cart found")
+    return { success: false, error: "Aktif bir sepet bulunamadı" }
   }
 
   const headers = {
     ...(await getAuthHeaders()),
   }
 
-  return sdk.store.cart
-    .update(cartId, { promo_codes: codes }, {}, headers)
-    .then(async () => {
-      const cartCacheTag = await getCacheTag("carts")
-      revalidateTag(cartCacheTag)
+  try {
+    // 1. Get current cart to check existing promo codes
+    const currentCart = await sdk.store.cart.retrieve(
+      cartId,
+      { fields: "+promotions.*,+promotions.code" },
+      headers
+    ).then((res: any) => res.cart).catch(() => null)
 
-      const fulfillmentCacheTag = await getCacheTag("fulfillment")
-      revalidateTag(fulfillmentCacheTag)
-    })
-    .catch(medusaError)
+    const existingCodes: string[] = (currentCart?.promotions || [])
+      .map((p: any) => p.code)
+      .filter(Boolean)
+
+    // Normalize incoming codes
+    const targetCodes = codes.map((c) => c.trim().toUpperCase()).filter(Boolean)
+
+    // Find codes that need to be removed (present in existing but not in target)
+    const codesToRemove = existingCodes.filter((c) => !targetCodes.includes(c))
+    if (codesToRemove.length > 0) {
+      try {
+        await sdk.store.cart.removePromotions(
+          cartId,
+          { promo_codes: codesToRemove },
+          {},
+          headers
+        )
+      } catch (rmErr: any) {
+        console.warn("removePromotions warning:", rmErr?.message)
+      }
+    }
+
+    // Find codes that need to be added (present in target but not in existing)
+    const codesToAdd = targetCodes.filter((c) => !existingCodes.includes(c))
+    let updatedCart = currentCart
+    if (codesToAdd.length > 0) {
+      const resp = await sdk.store.cart.addPromotions(
+        cartId,
+        { promo_codes: codesToAdd },
+        {},
+        headers
+      )
+      updatedCart = resp.cart
+    } else if (codesToRemove.length > 0) {
+      // Re-retrieve cart if we removed codes
+      const resp = await sdk.store.cart.retrieve(cartId, {}, headers)
+      updatedCart = resp.cart
+    }
+
+    const cartCacheTag = await getCacheTag("carts")
+    revalidateTag(cartCacheTag)
+
+    const fulfillmentCacheTag = await getCacheTag("fulfillment")
+    revalidateTag(fulfillmentCacheTag)
+
+    return { success: true, cart: updatedCart }
+  } catch (error: any) {
+    console.error("applyPromotions error:", error)
+    let userMsg = "Girilen kupon kodu bulunamadı veya geçersiz."
+    const rawMsg = error?.response?.data?.message || error?.message || ""
+    if (rawMsg) {
+      if (rawMsg.includes("not found") || rawMsg.includes("does not exist") || rawMsg.includes("invalid")) {
+        userMsg = "Girilen kupon kodu bulunamadı veya geçersiz."
+      } else if (rawMsg.includes("expired")) {
+        userMsg = "Bu kupon kodunun kullanım süresi dolmuş."
+      } else if (rawMsg.includes("limit") || rawMsg.includes("usage")) {
+        userMsg = "Bu kupon kodunun kullanım limiti dolmuş."
+      } else {
+        userMsg = rawMsg
+      }
+    }
+    return { success: false, error: userMsg }
+  }
 }
 
 export async function applyGiftCard(code: string) {
@@ -394,9 +455,12 @@ export async function submitPromotionForm(
 ) {
   const code = formData.get("code") as string
   try {
-    await applyPromotions([code])
+    const res = await applyPromotions([code])
+    if (res && !res.success) {
+      return res.error
+    }
   } catch (e: any) {
-    return e.message
+    return e?.message || "Kupon uygulanamadı"
   }
 }
 

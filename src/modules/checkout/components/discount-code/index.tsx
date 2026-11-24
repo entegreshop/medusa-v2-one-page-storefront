@@ -142,10 +142,14 @@ const DiscountCouponsList = ({ cart, promotions, isLoading, setIsLoading, setErr
                     .map((p: any) => p.code!);
                   codes.push(coupon.code);
                   try {
-                    await applyPromotions(codes);
+                    const res = await applyPromotions(codes);
+                    if (res && !res.success) {
+                      setErrorMessage(res.error || "Kupon uygulanamadı");
+                      return;
+                    }
                     setCode("");
                   } catch (e: any) {
-                    setErrorMessage(e.message);
+                    setErrorMessage(e?.message || "Kupon uygulanamadı");
                   } finally {
                     setIsLoading(false);
                   }
@@ -222,10 +226,14 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
     codes.push(code.trim())
 
     try {
-      await applyPromotions(codes)
+      const res = await applyPromotions(codes)
+      if (res && !res.success) {
+        setErrorMessage(res.error || "Kupon uygulanamadı")
+        return
+      }
       setCode("")
     } catch (e: any) {
-      setErrorMessage(e.message)
+      setErrorMessage(e?.message || "Kupon uygulanamadı")
     } finally {
       setIsLoading(false)
     }

@@ -242,9 +242,9 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
     if (data.coupon && data.coupon.trim() !== "") {
         console.log("[QuickCheckout] 3.5. Kupon uygulanıyor:", data.coupon)
         try {
-            await sdk.store.cart.update(
+            await sdk.store.cart.addPromotions(
                 targetCartId,
-                { promo_codes: [data.coupon.trim()] } as any,
+                { promo_codes: [data.coupon.trim().toUpperCase()] },
                 {},
                 headers
             )
@@ -255,12 +255,16 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
     } else {
         console.log("[QuickCheckout] 3.5. Kupon temizleniyor (boş veya kaldırılmış)")
         try {
-            await sdk.store.cart.update(
-                targetCartId,
-                { promo_codes: [] } as any,
-                {},
-                headers
-            )
+            const currentCart = await sdk.store.cart.retrieve(targetCartId, { fields: "+promotions.*,+promotions.code" }, headers).then((r: any) => r.cart).catch(() => null)
+            const activeCodes = (currentCart?.promotions || []).map((p: any) => p.code).filter(Boolean)
+            if (activeCodes.length > 0) {
+                await sdk.store.cart.removePromotions(
+                    targetCartId,
+                    { promo_codes: activeCodes },
+                    {},
+                    headers
+                )
+            }
         } catch(err: any) {
             console.warn("[QuickCheckout] Kupon temizleme notu:", err.message)
         }
