@@ -53,54 +53,79 @@ MADDE 6 - YETKİLİ MAHKEME
   },
   "iade-ve-degisim": {
     title: "İptal, İade ve Değişim Koşulları",
-    subtitle: "Müşteri Memnuniyeti Güvencesi ve Kolay İade Rehberi",
+    subtitle: "Google Merchant Center ve 6502 Sayılı Tüketici Kanunu Uyumlu Şeffaf İade Politikası",
     updatedAt: "26.11.2026",
-    content: `Çizgi Butik olarak müşteri memnuniyetini en üst düzeyde tutmayı ilke ediniyoruz. Satın aldığınız ürünlerden herhangi bir nedenle memnun kalmamanız durumunda 14 gün içerisinde kolay iade ve değişim hakkınız bulunmaktadır.
+    content: `Çizgi Butik olarak müşteri memnuniyetini en üst düzeyde tutmayı ilke ediniyoruz. Google Merchant Center politikaları ve 6502 sayılı Tüketicinin Korunması Hakkında Kanun uyarınca hazırlanan resmi iptal, iade ve değişim politikamız aşağıda tüm detaylarıyla yer almaktadır:
 
-1. İADE VE DEĞİŞİM SÜRESİ
-6502 sayılı Tüketicinin Korunması Hakkında Kanun uyarınca, siparişinizi teslim aldığınız tarihten itibaren 14 (on dört) gün içerisinde herhangi bir gerekçe göstermeksizin iade veya değişim talep edebilirsiniz.
+İADE VE DEĞİŞİM POLİTİKASI ÖZET TABLOSU:
+• İade Politikası URL: https://cizgibutik.com/tr/pages/iade-ve-degisim
+• Geçerli Ülke: Türkiye
+• İade Kabul Edilen Durumlar: Hem kusurlu hem de kusurlu olmayan (cayma hakkı) tüm ürünler için iade kabul edilir.
+• Değişim (Borsalar): Evet, tüm ürünlerde 14 gün içinde değişim kabul edilir.
+• Ürünün Durumu: Yalnızca yeni ürünler (kullanılmamış, yıkanmamış, tadilat görmemiş, orijinal etiketleri ve ambalajı zarar görmemiş).
+• İade Aralığı / Süresi: Teslimat tarihinden itibaren 14 gün.
+• İade Yöntemi: Postayla / Anlaşmalı kargo firmaları aracılığıyla depomuza iade.
+• İade Kargo Ücreti / Etiketi: Müşterinin sorumluluğundadır (kusurlu veya ayıplı ürün gönderimlerinde kargo ücreti tamamen firmamıza aittir).
+• Yeniden Stoka Ekleme Ücreti (Restocking Fee): Maliyet yok (0 TL / Ücretsizdir, herhangi bir stoklama kesintisi uygulanmaz).
+• Geri Ödeme İşlem Süresi: İade edilen ürün depomuza ulaştıktan sonra 3 gün içinde tamamlanır.
 
-2. İADE VE DEĞİŞİM ŞARTLARI
-- İade veya değişimi talep edilen ürünün kullanılmamış, yıkanmamış, tadilat görmemiş, parfüm veya leke barındırmayan durumda olması gerekmektedir.
-- Ürün üzerinde bulunan orijinal etiketler, barkodlar ve koruyucu bantlar sökülmemiş olmalıdır.
-- Ürün tüm aksesuarları ve varsa orijinal kutusu/ambalajı ile birlikte eksiksiz olarak gönderilmelidir.
-- Hijyen kuralları gereği iç giyim, küpe vb. kişisel bakım ürünlerinde iade/değişim kabul edilememektedir.
+1. İADE VE CAYMA HAKKI SÜRESİ
+Müşterilerimiz, sipariş ettikleri ürünün kendilerine veya belirttikleri adresteki kişi/kuruluşa teslim edildiği tarihten itibaren 14 (on dört) gün içerisinde hiçbir gerekçe göstermeksizin ve cezai şart ödemeksizin cayma hakkını kullanarak iade edebilir veya değişim talep edebilir.
 
-3. İADE ADIMLARI
-Adım 1: İade talebinizi info@cizgibutik.com e-posta adresimize sipariş numaranızla birlikte iletebilir veya 0532 337 00 81 numaralı müşteri hizmetleri / WhatsApp hattımızdan bildirebilirsiniz.
-Adım 2: Size iletilen anlaşmalı kargo iade kodunu kullanarak ürünü özenle paketleyiniz.
-Adım 3: Paketi en yakın anlaşmalı kargo şubesine teslim ediniz.
+2. İADE EDİLEBİLECEK ÜRÜNLERİN DURUMU
+- İade edilecek ürünler yalnızca "Yeni" durumda olmalıdır.
+- Ürünün denenmesi haricinde kullanılmamış, yıkanmamış, parfüm veya kozmetik lekesi barındırmayan durumda olması gerekmektedir.
+- Ürün üzerinde bulunan orijinal barkod, etiket ve koruyucu bantlar sökülmemiş olmalıdır.
+- Ürünün varsa tüm aksesuarları ve orijinal kutusu ile birlikte eksiksiz olarak kargolanması gerekir.
+- Sağlık ve hijyen açısından uygun olmayan ürünler (iç çamaşırı, küpe vb.) hijyen bandı açıldığı takdirde iade alınamamaktadır.
 
-4. İADE ADRESİ
-Alıcı: ÖZSE MODA TEKSTİL KAFE GIDA İNŞAAT SAN. TİC. LTD. ŞTİ. (Çizgi Butik)
-Adres: Merkez Mah. Muallim Naci Sk. No: 9 Güngören / İstanbul
+3. KUSURLU VE AYIPLI ÜRÜNLERDE İADE
+Ürünün fabrikasyon kusurlu, hasarlı veya siparişinizden farklı çıkması halinde koşulsuz olarak iade veya anında birebir değişim yapılır. Bu durumda iade kargo ücreti firmamız tarafından karşılanır.
+
+4. İADE VE DEĞİŞİM SÜRECİ (ADIM ADIM)
+Adım 1: info@cizgibutik.com e-posta adresimize sipariş numaranızla yazabilir veya 0532 337 00 81 numaralı WhatsApp destek hattımıza iletebilirsiniz.
+Adım 2: Size iletilen kargo iade takip kodunu kullanarak ürünü sağlam bir paket içerisinde hazırlayınız.
+Adım 3: Paketi en yakın kargo şubesine teslim ediniz.
+
+5. İADE VE DEPO TESLİMAT ADRESİ
+Firma: ÖZSE MODA TEKSTİL KAFE GIDA İNŞAAT SAN. TİC. LTD. ŞTİ. (Çizgi Butik)
+Adres: Merkez Mah. Muallim Naci Sk. No: 9 Güngören / İstanbul / Türkiye
 Telefon: 0532 337 00 81
+E-posta: info@cizgibutik.com
 
-5. ÜCRET İADESİ SÜRECİ
-İade ettiğiniz ürün depomuza ulaştıktan sonra kalite kontrol ekibimiz tarafından incelenir. İade şartlarına uygunluğu onaylanan ürünlerin bedeli 3 ila 7 iş günü içerisinde ödeme yaptığınız kredi kartına veya banka hesabınıza iade edilir. Tutarın ekstrenize yansıması bankanızın işlem sürelerine bağlı olarak değişiklik gösterebilir.`,
+6. GERİ ÖDEME İŞLEM SÜRESİ (3 GÜN)
+İade edilen ürün depomuza ulaşıp kalite kontrol uzmanlarımızca onaylandıktan sonra en geç 3 (üç) gün içinde geri ödemeniz bankanıza kesintisiz olarak iletilir. Bankanızın kart ve hesap tipine göre tutar ekstrenize yansıtılır.`,
   },
   "teslimat-kargo": {
     title: "Teslimat ve Kargo Şartları",
-    subtitle: "Hızlı, Güvenli ve Sigortalı Gönderim",
+    subtitle: "Google Merchant Center Uyumlu Kargo Bilgileri ve Ücret Tablosu",
     updatedAt: "26.11.2026",
-    content: `1. SİPARİŞ HAZIRLANMA VE KARGOLAMA SÜRESİ
-Çizgi Butik web sitemiz üzerinden verilen siparişler özenle hazırlanarak en kısa sürede kargoya teslim edilmektedir:
-- Hafta içi saat 16:00'a kadar onaylanan siparişler AYNI GÜN kargoya verilir.
-- Saat 16:00'dan sonra verilen siparişler takip eden ilk iş günü işleme alınır.
-- Cumartesi ve Pazar günleri ile resmi tatillerde verilen siparişler ilk iş günü kargolanır.
+    content: `Çizgi Butik siparişleriniz, Türkiye'nin her noktasına hızlı, sigortalı ve güvenli şekilde ulaştırılmaktadır. Kargo süreçlerimiz ve ücretlendirme politikamız şeffaf şekilde aşağıda belirtilmiştir:
 
-2. TESLİMAT SÜRESİ
-Kargoya teslim edilen paketler, Türkiye'nin her yerine ortalama 1 ila 3 iş günü içerisinde ulaştırılmaktadır. İl merkezleri dışındaki köy, kasaba ve mobil dağıtım bölgelerinde teslimat süresi kargo firmasının dağıtım planına bağlı olarak 1-2 gün uzayabilir.
+KARGO VE TESLİMAT BİLGİLERİ ÖZETİ:
+• Geçerli Ülke: Türkiye (Tüm 81 il ve ilçeler)
+• Son Sipariş Saati: Saat 14:00 (GMT+03:00 Türkiye Standart Saati - İstanbul)
+• Sevkiyata Hazırlık Süresi (Handling Time): 0 - 1 gün (Pazartesi - Cumartesi günleri arasında)
+• Nakliye Süresi (Transit Time): 0 - 3 gün (Pazartesi - Cumartesi günleri arasında)
+• Toplam Teslimat Süresi: 0 - 4 iş günü
 
-3. KARGO ÜCRETLERİ VE KAMPANYALAR
-- Web sitemizde belirlenen sepet tutarı üzerindeki alışverişlerde KARGO ÜCRETSİZDİR.
-- Kampanya limitinin altındaki siparişlerde sabit kargo ücreti sipariş esnasında sepet ve ödeme ekranında açıkça belirtilir. Sürpriz ek maliyet çıkarılmaz.
+KARGO MALİYETLERİ VE FİYATLANDIRMA:
+• 3.000,00 TL ve Üzeri Siparişler: KARGO ÜCRETSİZDİR (0,00 TL).
+• 3.000,00 TL Altındaki Siparişler: Sabit 60,00 TL kargo ücreti tahsil edilir.
+• Para Birimi: TRY (Türk Lirası).
+• Gizli Maliyet Yoktur: Sipariş esnasında sepet ve ödeme adımında kargo ücreti açıkça gösterilir, ek bir sürpriz maliyet yansıtılmaz.
 
-4. KARGO TAKİBİ
-Siparişiniz kargo firmasına teslim edildiğinde, sistemimize kayıtlı cep telefonu numaranıza SMS ve e-posta adresinize kargo takip kodunuz iletilir. Bu takip numarasıyla web sitemizdeki "Sipariş Takip" sayfasından veya kargo firmasının web sitesinden gönderinizi anlık olarak izleyebilirsiniz.
+1. AYNI GÜN SEVKİYAT VE HAZIRLIK
+Hafta içi ve Cumartesi günleri saat 14:00'e kadar verilen tüm siparişler aynı gün (0 gün) hazırlanarak kargo şirketine teslim edilir. Saat 14:00'ten sonra verilen siparişler takip eden ilk iş günü (maksimum 1 gün içinde) kargoya teslim edilmektedir.
 
-5. TESLİMAT SIRASINDA DİKKAT EDİLMESİ GEREKENLER
-Kargo paketini teslim alırken lütfen dış ambalajı kontrol ediniz. Ambalajında ezilme, yırtılma, ıslanma veya açılma tespit ederseniz paketi teslim almayınız ve kargo görevlisine "Hasar Tespit Tutanağı" tutturunuz. Ardından 0532 337 00 81 numaralı müşteri hizmetlerimizle iletişime geçiniz.`,
+2. NAKLİYE VE TESLİMAT SÜRESİ
+Kargo firmasına teslim edilen paketler, alıcının bulunduğu il ve ilçeye bağlı olarak 0 ila 3 iş günü içinde adrese teslim edilir. Türkiye genelinde toplam teslimat süresi sipariş anından itibaren 0-4 iş günüdür.
+
+3. KARGO TAKİBİ
+Siparişiniz kargo görevlisine teslim edildiğinde, sistemimize kayıtlı cep telefonunuza SMS ve e-posta adresinize kargo takip numarası iletilir. Bu takip numarasıyla web sitemizden veya kargo firmasının sorgulama ekranından gönderinizin aşamalarını canlı takip edebilirsiniz.
+
+4. TESLİMAT ESNASINDA DİKKAT EDİLECEKLER
+Paketinizi teslim alırken kargo ambalajını kontrol ediniz. Fiziksel hasar veya ezilme tespit etmeniz durumunda kargo görevlisine Hasar Tespit Tutanağı tutturarak paketi teslim almayınız ve derhal 0532 337 00 81 numaralı destek hattımıza bildiriniz.`,
   },
   "iletisim": {
     title: "İletişim Bilgileri",

@@ -116,7 +116,7 @@ export default function ProductSchema({
         "@type": "OfferShippingDetails",
         shippingRate: {
           "@type": "MonetaryAmount",
-          value: "0.00",
+          value: finalPrice >= 3000 ? "0.00" : "60.00",
           currency: currencyCode,
         },
         shippingDestination: {
@@ -133,7 +133,7 @@ export default function ProductSchema({
           },
           transitTime: {
             "@type": "QuantitativeValue",
-            minValue: 1,
+            minValue: 0,
             maxValue: 3,
             unitCode: "DAY",
           },
@@ -146,7 +146,16 @@ export default function ProductSchema({
           "https://schema.org/MerchantReturnFiniteReturnWindow",
         merchantReturnDays: 14,
         returnMethod: "https://schema.org/ReturnByMail",
-        returnFees: "https://schema.org/FreeReturn",
+        returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
+        returnLabelSource:
+          "https://schema.org/ReturnLabelCustomerResponsibility",
+        refundType: "https://schema.org/FullRefund",
+        restockingFee: {
+          "@type": "MonetaryAmount",
+          value: "0.00",
+          currency: currencyCode,
+        },
+        merchantReturnLink: "https://cizgibutik.com/tr/pages/iade-ve-degisim",
       },
     },
     aggregateRating: {
