@@ -75,7 +75,7 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
 
       // Bos sepet
       const cartParams: any = { region_id: region.id }
-      const finalEmail = data.email && data.email.trim() !== "" ? data.email : "misafir@bellbutik.com"
+      const finalEmail = data.email && data.email.trim() !== "" ? data.email : "misafir@cizgibutik.com"
       cartParams.email = finalEmail
 
       const cartResp = await sdk.store.cart.create(cartParams, {}, headers)
@@ -111,7 +111,7 @@ export async function processQuickCheckout(data: QuickCheckoutFormData) {
       company: data.invoice_type === 'kurumsal' ? data.company_name : undefined
     }
 
-    const finalEmailForUpdate = data.email && data.email.trim() !== "" ? data.email : "misafir@bellbutik.com"
+    const finalEmailForUpdate = data.email && data.email.trim() !== "" ? data.email : "misafir@cizgibutik.com"
 
     try {
       await sdk.store.cart.update(

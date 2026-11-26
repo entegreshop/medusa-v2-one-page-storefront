@@ -38,6 +38,15 @@ export default function ProductSchema({
     // Fallback if price parsing encounters any edge cases
   }
 
+  // Medusa stores amounts in minor currency units (cents/kuruş, e.g. 79900 = 799.00 TL)
+  // Ensure the schema price is in major currency units matching the page display
+  let finalPrice = priceNumber
+  if (finalPrice > 0) {
+    if (finalPrice >= 1000) {
+      finalPrice = finalPrice / 100
+    }
+  }
+
   const canonicalUrl = `https://cizgibutik.com/${countryCode}/products/${product.handle}`
 
   const cleanDescription =
@@ -94,7 +103,7 @@ export default function ProductSchema({
       "@type": "Offer",
       url: canonicalUrl,
       priceCurrency: currencyCode,
-      price: priceNumber > 0 ? priceNumber.toFixed(2) : "0.00",
+      price: finalPrice > 0 ? finalPrice.toFixed(2) : "0.00",
       priceValidUntil: "2027-12-31",
       itemCondition: "https://schema.org/NewCondition",
       availability: "https://schema.org/InStock",

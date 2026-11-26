@@ -181,13 +181,16 @@ export default async function Footer() {
           {/* Bize Ulaşın */}
           <div className="flex flex-col gap-y-4">
             <span className="font-bold text-[15px] text-black">Bize Ulaşın</span>
-            <div className="flex flex-col gap-y-3 text-gray-500 text-[13px] leading-relaxed">
+            <div className="flex flex-col gap-y-2.5 text-gray-500 text-[13px] leading-relaxed">
               <p className="font-semibold text-gray-800">
-                {logoConfig?.contactCompany || "ÇİZGİ BUTİK MODA & TEKSTİL"}
+                {logoConfig?.contactCompany || "ÖZSE MODA TEKSTİL KAFE GIDA İNŞAAT SAN. TİC. LTD. ŞTİ. (Çizgi Butik)"}
               </p>
-              <p>{logoConfig?.contactAddress || "Adres: Merkez Mah. Moda Cad. No:12 İstanbul / Türkiye"}</p>
+              <p>{logoConfig?.contactAddress || "Adres: Merkez Mah. Muallim Naci Sk. No: 9 Güngören / İstanbul"}</p>
               <p>{logoConfig?.contactPhone || "Tel: 0532 337 00 81"}</p>
               <p>{logoConfig?.contactEmail || "E-posta: info@cizgibutik.com"}</p>
+              <p className="text-[12px] text-gray-400">
+                Mersis No: 0705060035500001 | Güngören V.D. 7050600355
+              </p>
               <p>
                 {logoConfig?.contactHours ||
                   "Hafta içi 09.00 - 19.00, Cumartesi 10.00 - 18.00 saatleri arasında ulaşabilirsiniz."}
@@ -206,88 +209,14 @@ export default async function Footer() {
             </span>
           </div>
 
-          {/* Center: Frameless Animated EntegreShop Logo (Action travels directly on the logo) */}
+          {/* Center: Çizgi Butik Trust & Guarantee Badge */}
           <div className="flex items-center justify-center order-1 md:order-2">
-            <style
-              dangerouslySetInnerHTML={{
-                __html: `
-                  @keyframes entegreLogoWave {
-                    0% { background-position: 180% 0; }
-                    65% { background-position: -60% 0; }
-                    100% { background-position: -60% 0; }
-                  }
-                  @keyframes entegreNodePulse {
-                    0%, 100% { transform: translate(-50%, -50%) scale(0.75); opacity: 0.25; }
-                    18% { transform: translate(-50%, -50%) scale(1.35); opacity: 1; }
-                    45% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.35; }
-                  }
-                  @keyframes entegreNodeRing {
-                    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.9; }
-                    45%, 100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0; }
-                  }
-                  .entegre-logo-mask-shine {
-                    background-image: linear-gradient(
-                      110deg,
-                      transparent 30%,
-                      rgba(16, 185, 129, 0.9) 44%,
-                      rgba(255, 255, 255, 0.98) 50%,
-                      rgba(56, 189, 248, 0.9) 56%,
-                      transparent 70%
-                    );
-                    background-size: 240% 100%;
-                    background-repeat: no-repeat;
-                    -webkit-mask-image: url('/entegreshop-logo.png');
-                    mask-image: url('/entegreshop-logo.png');
-                    -webkit-mask-size: contain;
-                    mask-size: contain;
-                    -webkit-mask-repeat: no-repeat;
-                    mask-repeat: no-repeat;
-                    -webkit-mask-position: center;
-                    mask-position: center;
-                    animation: entegreLogoWave 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-                  }
-                  .entegre-node-dot {
-                    animation: entegreNodePulse 3.2s ease-in-out infinite;
-                  }
-                  .entegre-node-ripple {
-                    animation: entegreNodeRing 3.2s cubic-bezier(0, 0, 0.2, 1) infinite;
-                  }
-                `,
-              }}
-            />
-            <a
-              href="https://entegreshop.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="EntegreShop"
-              className="group relative inline-flex items-center justify-center cursor-pointer select-none transition-transform duration-300 hover:scale-105"
-            >
-              {/* Base Official EntegreShop Logo (Larger, Frameless) */}
-              <img
-                src="/entegreshop-logo.png"
-                alt="EntegreShop"
-                className="h-11 sm:h-12 w-auto object-contain block"
-                loading="lazy"
-              />
-
-              {/* Travelling Light & Energy Action Directly Inside the Logo Strokes */}
-              <span
-                aria-hidden="true"
-                className="entegre-logo-mask-shine pointer-events-none absolute inset-0 z-10"
-              />
-
-              {/* Circuit Terminal Spark on the Hexagon S-Node */}
-              <span
-                aria-hidden="true"
-                style={{ left: "20.4%", top: "32.5%" }}
-                className="entegre-node-ripple pointer-events-none absolute w-2.5 h-2.5 rounded-full bg-emerald-400/70 z-20"
-              />
-              <span
-                aria-hidden="true"
-                style={{ left: "20.4%", top: "32.5%" }}
-                className="entegre-node-dot pointer-events-none absolute w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] z-20"
-              />
-            </a>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-50 border border-zinc-200/80 text-zinc-700 text-xs font-medium shadow-sm">
+              <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <span>%100 Orijinal &amp; Güvenli Alışveriş</span>
+            </div>
           </div>
 
           {/* Right: Payment Methods */}

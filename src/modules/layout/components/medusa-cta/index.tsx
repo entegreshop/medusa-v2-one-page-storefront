@@ -3,14 +3,13 @@ import { Text } from "@medusajs/ui"
 const MedusaCTA = () => {
   return (
     <Text className="flex gap-x-1.5 txt-compact-small-plus items-center text-ui-fg-muted">
-      Powered by
+      <span>© Çizgi Butik</span>
+      <span>•</span>
       <a
-        href="https://entegreshop.com"
-        target="_blank"
-        rel="noreferrer"
+        href="https://cizgibutik.com"
         className="font-medium text-ui-fg-subtle hover:text-ui-fg-base transition-colors inline-flex items-center gap-1"
       >
-        <span>entegreshop</span>
+        <span>Güvenli Alışveriş</span>
       </a>
     </Text>
   )
