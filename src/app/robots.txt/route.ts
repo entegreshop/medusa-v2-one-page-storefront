@@ -4,10 +4,24 @@ export const dynamic = "force-dynamic"
 
 export async function GET() {
   const config = await fetchStorePixelConfig()
+  const defaultRobotsTxt = [
+    "User-agent: *",
+    "Allow: /",
+    "Disallow: /api/",
+    "Disallow: /checkout",
+    "Disallow: /account",
+    "Disallow: /cart",
+    "Disallow: /*/checkout",
+    "Disallow: /*/account",
+    "Disallow: /*/cart",
+    "",
+    "Sitemap: https://cizgibutik.com/sitemap.xml",
+  ].join("\n")
+
   const content =
     config?.robots_txt?.active !== false && config?.robots_txt?.content
       ? config.robots_txt.content
-      : `User-agent: *\nAllow: /\nDisallow: /checkout\nDisallow: /account\nSitemap: https://cizgibutik.com/sitemap.xml`
+      : defaultRobotsTxt
 
   return new Response(content, {
     status: 200,

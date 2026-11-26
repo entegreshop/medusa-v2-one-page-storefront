@@ -72,6 +72,17 @@ export async function fetchStoreActiveThemeAssets() {
   return null
 }
 
+function cleanVerificationCode(code?: string): string {
+  if (!code) return ""
+  const trimmed = code.trim()
+  if (!trimmed) return ""
+  const contentMatch = trimmed.match(/content=["']([^"']+)["']/i)
+  if (contentMatch && contentMatch[1]) {
+    return contentMatch[1].trim()
+  }
+  return trimmed.replace(/^<meta[^>]*>/i, "").replace(/<\/meta>$/i, "").trim()
+}
+
 export default async function PixelScripts() {
   const [config, activeThemeAssets] = await Promise.all([
     fetchStorePixelConfig(),
@@ -123,19 +134,19 @@ export default async function PixelScripts() {
       {search_engines?.active !== false && (
         <>
           {search_engines?.google_verification && (
-            <meta name="google-site-verification" content={search_engines.google_verification} />
+            <meta name="google-site-verification" content={cleanVerificationCode(search_engines.google_verification)} />
           )}
           {search_engines?.facebook_verification && (
-            <meta name="facebook-domain-verification" content={search_engines.facebook_verification} />
+            <meta name="facebook-domain-verification" content={cleanVerificationCode(search_engines.facebook_verification)} />
           )}
           {search_engines?.yandex_verification && (
-            <meta name="yandex-verification" content={search_engines.yandex_verification} />
+            <meta name="yandex-verification" content={cleanVerificationCode(search_engines.yandex_verification)} />
           )}
           {search_engines?.bing_verification && (
-            <meta name="msvalidate.01" content={search_engines.bing_verification} />
+            <meta name="msvalidate.01" content={cleanVerificationCode(search_engines.bing_verification)} />
           )}
           {search_engines?.pinterest_verification && (
-            <meta name="p:domain_verify" content={search_engines.pinterest_verification} />
+            <meta name="p:domain_verify" content={cleanVerificationCode(search_engines.pinterest_verification)} />
           )}
         </>
       )}

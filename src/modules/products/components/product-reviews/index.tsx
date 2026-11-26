@@ -2,25 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react"
 import { HttpTypes } from "@medusajs/types"
-
-export type ReviewItem = {
-  id: string
-  no?: number
-  product_id?: string
-  product_title?: string
-  customer_name: string
-  color?: string
-  size?: string
-  rating: number
-  comment: string
-  media_url?: string
-  media_type?: "image" | "video"
-  media_urls?: string[]
-  active?: boolean
-  verified_purchase?: boolean
-  helpful_count?: number
-  created_at?: string
-}
+import { generateUniqueProductReviews, ReviewItem } from "./generate-product-reviews"
+export type { ReviewItem } from "./generate-product-reviews"
 
 type ProductReviewsProps = {
   product: HttpTypes.StoreProduct
@@ -33,47 +16,9 @@ const isVideoMedia = (url?: string, type?: string) => {
 }
 
 const ProductReviews: React.FC<ProductReviewsProps> = ({ product }) => {
-  const [reviews, setReviews] = useState<ReviewItem[]>([
-    {
-      id: "rev_default_1",
-      customer_name: "Mehmet A.",
-      color: "STANDART",
-      rating: 5,
-      comment:
-        "Malzeme kalitesi harika, birebir uyumlu geldi. Paketleme çok özenliydi ve hızlı kargolandı. Kesinlikle tavsiye ederim!",
-      media_url: product.thumbnail || product.images?.[0]?.url || "",
-      media_type: "image",
-      verified_purchase: true,
-      helpful_count: 14,
-      created_at: "10.11.2026",
-    },
-    {
-      id: "rev_default_2",
-      customer_name: "Seda K.",
-      color: "PARLAK SİYAH",
-      rating: 5,
-      comment:
-        "Rengi, dokusu ve duruşu muazzam. Montajı çok kolay oldu, araca tam oturdu. Çok memnun kaldık :)",
-      media_url: product.images?.[1]?.url || product.thumbnail || "",
-      media_type: "image",
-      verified_purchase: true,
-      helpful_count: 9,
-      created_at: "09.11.2026",
-    },
-    {
-      id: "rev_default_3",
-      customer_name: "Emre T.",
-      color: "STANDART",
-      rating: 5,
-      comment:
-        "Gerçekten fiyat performans olarak çok başarılı. Müşteri temsilcisi de çok ilgiliydi, teşekkürler.",
-      media_url: product.images?.[2]?.url || product.thumbnail || "",
-      media_type: "image",
-      verified_purchase: true,
-      helpful_count: 6,
-      created_at: "08.11.2026",
-    },
-  ])
+  const [reviews, setReviews] = useState<ReviewItem[]>(() =>
+    generateUniqueProductReviews(product)
+  )
 
   const [showWriteModal, setShowWriteModal] = useState(false)
   const [lightboxMedia, setLightboxMedia] = useState<{ url: string; type: "image" | "video"; author: string; comment: string; rating: number } | null>(null)
@@ -93,7 +38,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ product }) => {
   // Extract color options from product if available
   const productColors: string[] = React.useMemo(() => {
     const colorOpt = product.options?.find(
-      (o) =>
+      (o: any) =>
         o.title?.toLowerCase().includes("renk") ||
         o.title?.toLowerCase().includes("color") ||
         o.title?.toLowerCase().includes("seçenek")
@@ -101,7 +46,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ product }) => {
     if (colorOpt?.values && colorOpt.values.length > 0) {
       return colorOpt.values.map((v: any) => String(v.value || v).toUpperCase())
     }
-    return ["STANDART", "PARLAK SİYAH", "MAT SİYAH", "KARBON"]
+    return ["STANDART", "SİYAH", "BEYAZ", "BEJ", "EKRU", "KAHVE"]
   }, [product.options])
 
   useEffect(() => {
@@ -125,17 +70,19 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ product }) => {
       )
       if (res.ok) {
         const data = await res.json()
-        if (data?.success && Array.isArray(data.reviews) && data.reviews.length > 0) {
-          // Enrich reviews without media with product images if they are default showcase reviews
-          const enriched = data.reviews.map((r: ReviewItem, idx: number) => ({
-            ...r,
-            media_url:
-              r.media_url ||
-              product.images?.[idx % Math.max(1, product.images?.length || 1)]?.url ||
-              product.thumbnail ||
-              "",
-          }))
-          setReviews(enriched)
+        if (data?.success && Array.isArray(data.reviews)) {
+          const customReviews = data.reviews.filter(
+            (r: any) =>
+              r.id !== "rev_1" &&
+              r.id !== "rev_2" &&
+              r.id !== "rev_3" &&
+              r.product_id === product.id
+          )
+          if (customReviews.length > 0) {
+            setReviews([...customReviews, ...generateUniqueProductReviews(product)])
+          } else {
+            setReviews(generateUniqueProductReviews(product))
+          }
         }
       }
     } catch (e) {
@@ -147,10 +94,12 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ product }) => {
             const parsed = JSON.parse(saved)
             if (Array.isArray(parsed) && parsed.length > 0) {
               setReviews(parsed)
+              return
             }
           } catch (err) {}
         }
       }
+      setReviews(generateUniqueProductReviews(product))
     }
   }
 

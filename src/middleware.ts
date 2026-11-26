@@ -81,6 +81,16 @@ async function getCountryCode(
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
+  // 0. Canonical WWW to Non-WWW Redirect (308 Permanent)
+  const host = (request.headers.get("x-forwarded-host") || request.headers.get("host") || "").toLowerCase()
+  if (host.startsWith("www.")) {
+    const nonWwwHost = host.replace(/^www\./, "")
+    const proto =
+      request.headers.get("x-forwarded-proto") || request.nextUrl.protocol.replace(":", "") || "https"
+    const target = `${proto}://${nonWwwHost}${pathname}${request.nextUrl.search || ""}`
+    return NextResponse.redirect(target, 308)
+  }
+
   // Static files, API routes, or XML export feeds pass right through
   if (
     pathname.startsWith("/api/") ||
@@ -123,10 +133,11 @@ export async function middleware(request: NextRequest) {
       ? "https"
       : request.headers.get("x-forwarded-proto") || request.nextUrl.protocol.replace(":", "") || "https"
 
-  const origin = forwardedHost ? `${forwardedProto}://${forwardedHost}` : request.nextUrl.origin
+  const canonicalHost = (forwardedHost || "cizgibutik.com").replace(/^www\./i, "")
+  const origin = `${forwardedProto}://${canonicalHost}`
   const redirectUrl = `${origin}/${countryCode}${redirectPath}${queryString}`
 
-  const response = NextResponse.redirect(redirectUrl, 307)
+  const response = NextResponse.redirect(redirectUrl, 308)
   if (!cacheIdCookie) {
     response.cookies.set("_medusa_cache_id", cacheId, {
       maxAge: 60 * 60 * 24,
